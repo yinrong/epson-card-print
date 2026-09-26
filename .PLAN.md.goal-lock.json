@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "plan": "PLAN.md",
+  "immutable_prefix": "# 目标（固定，不得修改）\n\n思路可以，写出执行计划目录，然后开始执行第一步\n\n",
+  "sha256": "2763840c6420c96992f0a6ad0d4d601f96f10dc9c7ef98d3691bda5a805f1bd6"
+}
