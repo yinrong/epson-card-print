@@ -1,0 +1,4 @@
+Pillow>=10
+reportlab>=4
+numpy>=1.24
+pypdf>=4

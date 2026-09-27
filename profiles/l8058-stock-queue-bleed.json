@@ -1,0 +1,167 @@
+{
+  "name": "L8058 original two-slot, EPSON_L8058 queue (full-bleed photo)",
+  "page_mm": [
+    209.9733333333,
+    296.9683333333
+  ],
+  "inset_mm": 0,
+  "slots": [
+    {
+      "id": "S1",
+      "x": 10.677,
+      "y": 38.739,
+      "w": 54,
+      "h": 86,
+      "rotation": 90
+    },
+    {
+      "id": "S2",
+      "x": 85.183,
+      "y": 38.739,
+      "w": 54,
+      "h": 86,
+      "rotation": 90
+    }
+  ],
+  "back_slot_map": [
+    "S1",
+    "S2"
+  ],
+  "back_rotation": 0,
+  "transforms": {
+    "front": [
+      1,
+      0,
+      -1.0,
+      0,
+      1,
+      0
+    ],
+    "back": [
+      1,
+      0,
+      -1.0,
+      0,
+      1,
+      0
+    ]
+  },
+  "cups_options": {
+    "AP_ColorMatchingMode": "AP_ApplicationColorMatching",
+    "APCustomColorMatchingProfile": "sRGB",
+    "ColorModel": "RGB",
+    "cupsBorderlessScalingFactor": "1.00",
+    "EPIJ_ACam": "0",
+    "EPIJ_AFil": "0",
+    "EPIJ_AGai": "1",
+    "EPIJ_APFPrvID": "7",
+    "EPIJ_APri": "0",
+    "EPIJ_ATon": "7",
+    "EPIJ_Bdls": "0",
+    "EPIJ_Bidi_Com": "1",
+    "EPIJ_Brit": "0",
+    "EPIJ_BSSv": "0",
+    "EPIJ_CCor": "12",
+    "EPIJ_CMat": "3",
+    "EPIJ_Cont": "0",
+    "EPIJ_Cyan": "0",
+    "EPIJ_DCCT": "0",
+    "EPIJ_DoneOpnr": "0",
+    "EPIJ_ECAv": "0",
+    "EPIJ_ENAL": "1-1_2-1_3-1_4-1",
+    "EPIJ_ERGB": "0",
+    "EPIJ_exmg": "2",
+    "EPIJ_ExtStAlK": "0",
+    "EPIJ_F180": "0",
+    "EPIJ_Gamm": "0",
+    "EPIJ_HdofClSp": "0",
+    "EPIJ_Hori": "0",
+    "EPIJ_Ink_": "1",
+    "EPIJ_IsRolBnr": "0",
+    "EPIJ_Mage": "0",
+    "EPIJ_Manu": "0",
+    "EPIJ_Medi": "199",
+    "EPIJ_Mode": "3",
+    "EPIJ_OPT_Bi_D": "1",
+    "EPIJ_OSCMProf": "1",
+    "EPIJ_OSColMat": "2",
+    "EPIJ_PageRegion": "A4.ManuCDR",
+    "EPIJ_PageSize": "A4.ManuCDR",
+    "EPIJ_PGEx": "0",
+    "EPIJ_PrStgAlK": "1027",
+    "EPIJ_PSrc": "25",
+    "EPIJ_Qual": "306",
+    "EPIJ_REye": "0",
+    "EPIJ_RmMg": "0",
+    "EPIJ_Satu": "0",
+    "EPIJ_SCF_": "1",
+    "EPIJ_Silt": "0",
+    "EPIJ_Size": "1",
+    "EPIJ_UEpL": "0",
+    "EPIJ_UpdtPMPr": "1",
+    "EPIJ_Yell": "0",
+    "EPIJClientInfo": "1",
+    "EPIJProfileSpec": "1",
+    "EPIJSharedClient": "0",
+    "EPIJSystemLanguage": "en",
+    "EPSON.PrintModule.Setting.ApplicationPageRect..a.0": "0.00000000000000",
+    "EPSON.PrintModule.Setting.ApplicationPageRect..a.1": "0.00000000000000",
+    "EPSON.PrintModule.Setting.ApplicationPageRect..a.2": "825.01000976562500",
+    "EPSON.PrintModule.Setting.ApplicationPageRect..a.3": "578.39998817443848",
+    "EPSON.PrintModule.Setting.ApplicationPaperRect..a.0": "-8.39996337890625",
+    "EPSON.PrintModule.Setting.ApplicationPaperRect..a.1": "-8.39999961853027",
+    "EPSON.PrintModule.Setting.ApplicationPaperRect..a.2": "833.40002441406250",
+    "EPSON.PrintModule.Setting.ApplicationPaperRect..a.3": "586.80001258850098",
+    "EPSON.PrintModule.Setting.Encoding..n.": "0",
+    "EPSON.PrintModule.Setting.PrinterName": "EPSON L8050 Series(25,0)",
+    "EPSON.PrintModule.Setting.SystType..n.": "3072",
+    "MediaType": "199",
+    "Resolution": "720x720dpi",
+    "PageSize": "A4.ManuCDR"
+  },
+  "queue_name": "EPSON_L8058",
+  "tray_option": "EPIJ_PSrc",
+  "transport_verified": true,
+  "production_verified": true,
+  "verification_evidence": [
+    {
+      "date": "2026-09-26",
+      "job": "EPSON_L8058-19",
+      "path": "Preview print dialog",
+      "result": "paper pieces in both slots printed; offsets ~+1.35/+0.65 mm page-x",
+      "photo": "/Users/derek.yin/db/epson-l8058/step1-driver-20260926/photos/job19-paper-calib.jpg"
+    },
+    {
+      "date": "2026-09-26",
+      "job": "EPSON_L8058-20",
+      "path": "lp with driver ticket, -1.0 mm x correction",
+      "result": "both slots printed inside pockets",
+      "photo": "/Users/derek.yin/db/epson-l8058/step1-driver-20260926/photos/job20-fullsheet-pvcmode.jpg"
+    },
+    {
+      "date": "2026-09-26",
+      "by": "Derek",
+      "result": "operator confirmed stock-tray positions correct (方案一之前测试我看都是对的); no further test prints requested"
+    }
+  ],
+  "basis": "L8050 Mac 13.26 MediaID199 clipping rectangles interpreted at 360dpi; nominal 54x86 card centered in 56.02x87.98 clip. Page from 595.20x841.80 points. Neither L8058 page origin nor tray transport has been verified. These are calibration candidates, not known print coordinates.",
+  "physical_card_thickness_mm": 0.76,
+  "physical_card_evidence": "User reports successful printing on original tray with nominal 0.76 mm cards; does not verify this custom program.",
+  "driver": "EPSON L8050 Series PPD 13.45, rastertoescpII, device socket://192.168.31.38:9100",
+  "calibration_records": {
+    "front": {
+      "source": "job 19 paper pieces, photo 2026-09-26 job19-paper-calib.jpg",
+      "dx_mm_measured": [
+        1.35,
+        0.65
+      ],
+      "dy_mm_measured": [
+        -0.3,
+        0.3
+      ],
+      "status": "operator_confirmed"
+    }
+  },
+  "driver_ticket_source": "Preview print dialog job 19 (EPSON L8058, A4 Disc/ID Card Tray, PVC ID Card Borderless, High Quality)",
+  "bleed_mm": 1.5
+}
