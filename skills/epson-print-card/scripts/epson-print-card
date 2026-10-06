@@ -512,6 +512,95 @@ def step(args):
         print(f'Submitted batch {batch["number"]} {side}; confirm physical output before advancing')
 
 
+A4_MM = (210.0, 297.0)
+
+
+def sheet_layout(count, aspect, page_mm=A4_MM, columns=None):
+    """Grid on A4 with zero gutters: pick columns so the cell aspect matches the images."""
+    pw, ph = page_mm
+    if columns:
+        cols = max(1, columns)
+        rows = max(1, round(cols*aspect*ph/pw))
+    else:
+        best = None
+        for c in range(1, count+1):
+            r = max(1, round(c*aspect*ph/pw))
+            cell = (pw/c)/(ph/r)
+            err = round(abs(math.log(cell/aspect)), 6)
+            key = (err, c, math.ceil(count/(c*r)))
+            if best is None or key < best[0]:
+                best = (key, c, r)
+        cols, rows = best[1], best[2]
+    capacity = cols*rows
+    return {'columns': cols, 'rows': rows, 'capacity': capacity, 'pages': math.ceil(count/capacity)}
+
+
+def sheet_cell(index, columns, rows, page_mm=A4_MM):
+    cw, ch = page_mm[0]/columns, page_mm[1]/rows
+    col, row = index % columns, index // columns
+    return (col*cw, row*ch, cw, ch)
+
+
+def make_sheet_pdf(path, files, layout, page_mm, dpi):
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.utils import ImageReader
+    cols = layout['columns']
+    cw, ch = page_mm[0]/cols, page_mm[1]/layout['rows']
+    pixels = (max(1, round(cw*dpi/25.4)), max(1, round(ch*dpi/25.4)))
+    c = canvas.Canvas(str(path), pagesize=(page_mm[0]*PT, page_mm[1]*PT), pageCompression=1)
+    c.setTitle('A4 sheet, zero spacing')
+    c.translate(0, page_mm[1]*PT)
+    c.scale(PT, -PT)
+    per_page = layout['capacity']
+    for page in range(layout['pages']):
+        for j, f in enumerate(files[page*per_page:(page+1)*per_page]):
+            x, y, w, h = sheet_cell(j, cols, layout['rows'], page_mm)
+            im = fitted(f, pixels, 'contain', 0)
+            c.drawImage(ImageReader(im), x, y, width=w, height=h)
+        c.showPage()
+    c.save()
+
+
+def verify_printer(queue):
+    info = checked_run(['lpstat','-p',queue,'-l']).stdout
+    if 'disabled' in info.lower():
+        raise ValueError('Target queue disabled')
+    model = checked_run(['lpstat','-l','-p',queue]).stdout
+    ppd = Path('/etc/cups/ppd')/(queue+'.ppd')
+    if ppd.is_file():
+        model += ppd.read_text(errors='replace')
+    if not re.search(r'epson|L805[08]', model, re.I):
+        raise ValueError('Cannot identify target as Epson; inspect queue before submitting')
+
+
+def sheet(args):
+    front_dir = Path(args.front_dir).resolve()
+    if not front_dir.is_dir():
+        raise ValueError(f'Not a directory: {front_dir}')
+    files = sorted(p for p in front_dir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES)
+    if not files:
+        raise ValueError(f'No images found in {front_dir}')
+    from PIL import Image
+    aspects = sorted(im.size[0]/im.size[1] for im in (Image.open(f) for f in files))
+    aspect = aspects[len(aspects)//2]
+    layout = sheet_layout(len(files), aspect, columns=args.columns)
+    out = Path(args.output).resolve()
+    out.mkdir(parents=True, exist_ok=False)
+    pdf = out/'sheet.pdf'
+    make_sheet_pdf(pdf, files, layout, A4_MM, args.dpi)
+    info = {'output': str(pdf), 'images': len(files), 'page_mm': list(A4_MM), 'spacing_mm': 0, **layout}
+    if args.queue:
+        cmd = command({'cups_options': {'EPIJ_Size': '1'}}, args.queue, pdf)
+        info['argv'] = cmd
+        info['execute'] = args.execute
+        if args.execute:
+            verify_printer(args.queue)
+            result = checked_run(cmd)
+            m = re.search(r'request id is (\S+)', result.stdout)
+            info['cups_job_id'] = m.group(1) if m else None
+    print(json.dumps(info, ensure_ascii=False))
+
+
 def parser():
     p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter); sub=p.add_subparsers(dest='cmd',required=True)
     b=sub.add_parser('prepare');b.add_argument('--front-dir');b.add_argument('--back-img')
@@ -520,6 +609,8 @@ def parser():
     c=sub.add_parser('calibrate');c.add_argument('--samples');c.add_argument('--max-residual',type=float,default=.5);c.add_argument('--reset',action='store_true');c.set_defaults(func=calibrate)
     s=sub.add_parser('step');s.add_argument('--job',required=True);s.add_argument('--queue');s.add_argument('--execute',action='store_true');s.add_argument('--tray-loaded',action='store_true')
     s.add_argument('--confirm-output',action='store_true');s.add_argument('--confirm-dry',action='store_true');s.set_defaults(func=step)
+    sh=sub.add_parser('sheet');sh.add_argument('--front-dir',required=True);sh.add_argument('--output',required=True);sh.add_argument('--queue')
+    sh.add_argument('--execute',action='store_true');sh.add_argument('--columns',type=int);sh.add_argument('--dpi',type=int,choices=(150,300,600),default=300);sh.set_defaults(func=sheet)
     return p
 
 

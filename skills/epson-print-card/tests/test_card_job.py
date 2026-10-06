@@ -252,4 +252,73 @@ class CardJob(unittest.TestCase):
         self.assertIn('batch-0001-front.pdf',payload['argv'][-1])
 
 
+class Sheet(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.base=Path(self.temp.name)
+        self.dir=self.base/'imgs';self.dir.mkdir()
+        for i,color in enumerate(('red','green','blue','yellow','cyan','magenta')):
+            Image.new('RGB',(86,54),color).save(self.dir/f'{i:02d}.png')
+
+    def args(self,**kw):
+        d=dict(front_dir=str(self.dir),output=str(self.base/'sheet-out'),queue=kw.pop('queue',None),execute=False,columns=kw.pop('columns',None),dpi=150)
+        d.update(kw);return argparse.Namespace(**d)
+
+    def test_sheet_layout_matches_aspect(self):
+        lay=epc.sheet_layout(75,0.628)
+        self.assertEqual((lay['columns'],lay['rows'],lay['pages'],lay['capacity']),(9,8,2,72))
+        self.assertEqual(epc.sheet_layout(1,0.628)['pages'],1)
+
+    def test_sheet_layout_columns_override(self):
+        lay=epc.sheet_layout(6,86/54,columns=2)
+        self.assertEqual((lay['columns'],lay['rows'],lay['pages']),(2,5,1))
+
+    def test_sheet_cells_have_zero_gap(self):
+        c0=epc.sheet_cell(0,2,5);c1=epc.sheet_cell(1,2,5);c2=epc.sheet_cell(2,2,5)
+        self.assertAlmostEqual(c1[0],c0[0]+c0[2],places=9)
+        self.assertAlmostEqual(c2[1],c0[1]+c0[3],places=9)
+        self.assertAlmostEqual(c2[0],c0[0],places=9)
+
+    def test_sheet_pdf_pages_size_and_images(self):
+        epc.sheet(self.args(columns=2))
+        reader=PdfReader(self.base/'sheet-out/sheet.pdf')
+        self.assertEqual(len(reader.pages),1)
+        self.assertAlmostEqual(float(reader.pages[0].mediabox.width)/epc.PT,210,places=3)
+        self.assertAlmostEqual(float(reader.pages[0].mediabox.height)/epc.PT,297,places=3)
+        self.assertEqual(len(list(reader.pages[0].images)),6)
+
+    def test_sheet_empty_dir_refused(self):
+        empty=self.base/'empty';empty.mkdir()
+        with self.assertRaisesRegex(ValueError,'No images'):epc.sheet(argparse.Namespace(front_dir=str(empty),output=str(self.base/'x'),queue=None,execute=False,columns=None,dpi=150))
+
+    def test_sheet_execute_submits_one_job(self):
+        calls=[]
+        def fake(argv):
+            calls.append(argv)
+            if argv[0]=='lpstat':return SimpleNamespace(stdout='printer L8058__Remote_ is idle. Epson L8058\n')
+            return SimpleNamespace(stdout='request id is L8058__Remote_-77 (1 file(s))\n')
+        with patch.object(epc,'checked_run',side_effect=fake):
+            epc.sheet(self.args(queue='L8058__Remote_',execute=True))
+        lp=[c for c in calls if c[0]=='lp']
+        self.assertEqual(len(lp),1)
+        self.assertIn('EPIJ_Size=1',lp[0])
+        self.assertTrue((self.base/'sheet-out/sheet.pdf').is_file())
+
+    def test_sheet_execute_refuses_disabled_queue(self):
+        def fake(argv):
+            return SimpleNamespace(stdout='printer L8058__Remote_ is disabled.\n')
+        with patch.object(epc,'checked_run',side_effect=fake):
+            with self.assertRaisesRegex(ValueError,'disabled'):
+                epc.sheet(self.args(queue='L8058__Remote_',execute=True))
+
+    def test_sheet_cli_preview(self):
+        r=subprocess.run([sys.executable,str(ROOT/'scripts/epson-print-card'),'sheet','--front-dir',str(self.dir),
+                          '--output',str(self.base/'cli-sheet'),'--queue','L8058__Remote_','--dpi','150'],capture_output=True,text=True)
+        self.assertEqual(r.returncode,0,r.stderr)
+        payload=json.loads(r.stdout)
+        self.assertEqual(payload['spacing_mm'],0)
+        self.assertFalse(payload['execute'])
+        self.assertTrue(payload['argv'][0]=='lp')
+
+
 if __name__=='__main__':unittest.main()

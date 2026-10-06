@@ -20,6 +20,16 @@ epson-print-card step --job /new/job --queue VERIFIED_EPSON_QUEUE
 
 本目录 PVC 证卡只有一种规格：86×54 mm、原配双卡托架。卡槽页面坐标、安全边距等已内建在程序里（初值由 L8050 驱动静态资料推算）。实机校准结果存在 `~/.config/epson-print-card/profile.json`（环境变量 `EPSON_PRINT_CARD_CONFIG_DIR` 可重定向），存在即优先生效，不存在就用内建值——日常使用不需要管这个文件。
 
+## A4 拼版打印（sheet）
+
+把一个目录的所有图片拼成 A4、0 间距网格，整册一个多页 PDF 一次提交（普通纸，不走托盘流程）：
+
+```bash
+epson-print-card sheet --front-dir {dir} --queue NAME [--columns N] [--execute] --output /new/dir
+```
+
+列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--queue` 给出即显示提交命令，`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）。
+
 ## 作业推进（step）
 
 - `step --job DIR --queue NAME`：显示当前这一盘一面的提交命令（预览，不动打印机）。
