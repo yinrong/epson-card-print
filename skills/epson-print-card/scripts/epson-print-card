@@ -26,6 +26,44 @@ PT = 72 / 25.4
 IDENTITY = [1, 0, 0, 0, 1, 0]  # x'=a*x+b*y+c, y'=d*x+e*y+f
 IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp', '.webp'}
 
+# 本项目 PVC 证卡只有一种规格：86x54 mm 卡、原配双卡托架。坐标来自 L8050 驱动
+# 静态资料推算（候选值，未经 L8058 实机验证）；实机校准结果写在
+# ~/.config/epson-print-card/profile.json，存在即优先生效。
+DEFAULT_PROFILE = {
+    "name": "L8058 stock two-slot (built-in)",
+    "page_mm": [209.9733333333, 296.9683333333],
+    "inset_mm": 3,
+    "slots": [
+        {"id": "S1", "x": 10.677, "y": 38.739, "w": 54, "h": 86, "rotation": 90},
+        {"id": "S2", "x": 85.183, "y": 38.739, "w": 54, "h": 86, "rotation": 90}
+    ],
+    "back_slot_map": ["S1", "S2"],
+    "back_rotation": 0,
+    "transforms": {"front": [1, 0, 0, 0, 1, 0], "back": [1, 0, 0, 0, 1, 0]},
+    "cups_options": {},
+    "queue_name": None,
+    "tray_option": None,
+    "transport_verified": False,
+    "production_verified": False,
+    "verification_evidence": [],
+    "basis": "L8050 Mac 13.26 MediaID199 clipping rectangles interpreted at 360dpi; nominal 54x86 card centered in 56.02x87.98 clip. Page from 595.20x841.80 points. Neither L8058 page origin nor tray transport has been verified. These are calibration candidates, not known print coordinates.",
+    "physical_card_thickness_mm": 0.76,
+    "physical_card_evidence": "User reports successful printing on original tray with nominal 0.76 mm cards; does not verify this custom program."
+}
+
+
+def active_profile_path():
+    base = os.environ.get('EPSON_PRINT_CARD_CONFIG_DIR', str(Path.home()/'.config'/'epson-print-card'))
+    return Path(base)/'profile.json'
+
+
+def active_profile():
+    import copy
+    path = active_profile_path()
+    if path.is_file():
+        return validate(read(path))
+    return validate(copy.deepcopy(DEFAULT_PROFILE))
+
 
 def read(path):
     return json.loads(Path(path).read_text())
@@ -249,9 +287,9 @@ def make_pdf(path, profile, placements, side, dpi, fit, calibration=False):
 
 def prepare(args):
     slots_per_tray, trays_per_group = parse_group(args.group)
-    profile = validate(read(args.profile))
+    profile = active_profile()
     if len(profile['slots']) != slots_per_tray:
-        raise ValueError(f'profile has {len(profile["slots"])} slots but --group says {slots_per_tray} per tray; use the matching 2-slot profile')
+        raise ValueError(f'active profile has {len(profile["slots"])} slots but --group says {slots_per_tray} per tray')
     if args.calibration:
         cards = [{'id':'calibration-'+s['id'],'front':None,'back':None} for s in profile['slots']]
     else:
@@ -304,7 +342,16 @@ def prepare(args):
 
 def calibrate(args):
     import numpy as np
-    profile = validate(read(args.profile))
+    path = active_profile_path()
+    if args.reset:
+        import copy
+        path.parent.mkdir(parents=True, exist_ok=True)
+        write(path, copy.deepcopy(DEFAULT_PROFILE))
+        print(json.dumps({'reset': str(path), 'note': 'active profile restored to built-in spec'}))
+        return
+    if not args.samples:
+        raise ValueError('--samples is required (or use --reset to restore the built-in spec)')
+    profile = active_profile()
     samples = read(args.samples)
     if len(samples) < 4:
         raise ValueError('Use at least four measured points, spread across both slots')
@@ -332,10 +379,9 @@ def calibrate(args):
     # A newly computed correction has not been verified by a repeat print.
     profile['production_verified'] = False
     validate(profile)
-    if Path(args.output).exists():
-        raise ValueError('Choose a new output profile path')
-    write(args.output,profile)
-    print(json.dumps({'transform':m,'max_residual_mm':float(max(error)),'production_verified':False}))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write(path, profile)
+    print(json.dumps({'updated': str(path), 'transform': m, 'max_residual_mm': float(max(error)), 'production_verified': False}))
 
 
 def checked_run(argv):
@@ -468,10 +514,10 @@ def step(args):
 
 def parser():
     p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter); sub=p.add_subparsers(dest='cmd',required=True)
-    b=sub.add_parser('prepare');b.add_argument('--profile',required=True);b.add_argument('--front-dir');b.add_argument('--back-img')
+    b=sub.add_parser('prepare');b.add_argument('--front-dir');b.add_argument('--back-img')
     b.add_argument('--group',required=True);b.add_argument('--output',required=True);b.add_argument('--calibration',action='store_true')
     b.add_argument('--dpi',type=int,choices=(150,300,600),default=300);b.add_argument('--fit',choices=('cover','contain','exact'),default='contain');b.set_defaults(func=prepare)
-    c=sub.add_parser('calibrate');c.add_argument('--profile',required=True);c.add_argument('--samples',required=True);c.add_argument('--output',required=True);c.add_argument('--max-residual',type=float,default=.5);c.set_defaults(func=calibrate)
+    c=sub.add_parser('calibrate');c.add_argument('--samples');c.add_argument('--max-residual',type=float,default=.5);c.add_argument('--reset',action='store_true');c.set_defaults(func=calibrate)
     s=sub.add_parser('step');s.add_argument('--job',required=True);s.add_argument('--queue');s.add_argument('--execute',action='store_true');s.add_argument('--tray-loaded',action='store_true')
     s.add_argument('--confirm-output',action='store_true');s.add_argument('--confirm-dry',action='store_true');s.set_defaults(func=step)
     return p

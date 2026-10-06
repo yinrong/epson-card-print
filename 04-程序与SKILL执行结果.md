@@ -37,6 +37,14 @@
 
 ## 当前实机状态
 
+2026-10-06，Derek 报告原话：
+
+> 托盘已经3d打印了，说明最后一次证卡打印是成功的
+
+即：托盘复刻件（3d 仓库链路）已完成 3D 打印，`--group 2x5` 所需的 5 个托盘硬件就位；原配托架链路的最后一次证卡打印成功（用户报告）。本程序输出 PDF 的坐标与该次实印的对应关系尚未比对，`production_verified` 仍为 false；此前 2026-09-22 那轮「本机未发现目标机」的连接检查结论已过期，下次实机前先跑 `probe_printer.py` 重查。
+
+此前记录：连续三个目标轮次均未发现目标机，等待设备接通。剩余验收为实际托架输出、喷印边界、正反定位和新托架进盘；现有软件测试不能替代这些验收。用户已提供的尺寸与照片估算继续使用。
+
 本轮重新检查：Epson 本地队列 0、USB 相关记录 0、Bonjour Epson 服务 0。观察结果不能证明打印机不存在，仅说明本机当前未发现可用目标。[本轮连接检查](/Users/derek.yin/db/epson-l8058/implementation/connectivity-20260922-3/检查结果.md)。没有提交实际打印任务。
 
 连续三个目标轮次均未发现目标机，当前等待设备接通。剩余验收为实际托架输出、喷印边界、正反定位和新托架进盘；现有软件测试不能替代这些验收。
@@ -49,7 +57,7 @@
 
 ## 文件
 
-- [epson-print-card 证卡程序（源码）](/Users/derek.yin/dev2/epson/skills/epson-print-card/SKILL.md)（[zcode 副本](/Users/derek.yin/.zcode/skills/epson-print-card/SKILL.md) · [codex 副本](/Users/derek.yin/.codex/skills/epson-print-card/SKILL.md) · PATH 命令 `~/.local/bin/epson-print-card`）：`--front-dir`＋`--back-img`＋`--group 2x5`，干燥门控 `--confirm-dry`；2026-10-06 建（「正卡」系「证卡」打错字，首轮误读件已退役），16 项测试通过，CLI 全流程含干燥门已实走核验
+- [epson-print-card 证卡程序（源码）](/Users/derek.yin/dev2/epson/skills/epson-print-card/SKILL.md)（[zcode 副本](/Users/derek.yin/.zcode/skills/epson-print-card/SKILL.md) · [codex 副本](/Users/derek.yin/.codex/skills/epson-print-card/SKILL.md) · PATH 命令 `~/.local/bin/epson-print-card`）：`--front-dir`＋`--back-img`＋`--group 2x5`，干燥门控 `--confirm-dry`；规格内建（86×54 双卡托架，无 profile 参数），校准写 `~/.config/epson-print-card/profile.json`；2026-10-06 建（「正卡」系「证卡」打错字，首轮误读件已退役），18 项测试通过，CLI 全流程含干燥门已实走核验
 - [SKILL](/Users/derek.yin/.codex/skills/epson-pvc-print/SKILL.md)
 - [可分发技能包](/Users/derek.yin/db/epson-l8058/implementation/epson-pvc-print.zip)
 - [示例装卡顺序](/Users/derek.yin/db/epson-l8058/implementation/demo-job/装卡顺序.html)

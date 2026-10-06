@@ -2,6 +2,7 @@ import argparse
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -26,7 +27,13 @@ class CardJob(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.base=Path(self.temp.name)
-        self.profile=epc.read(ROOT/'profiles/l8058-stock-provisional.json')
+        self._old_config=os.environ.get('EPSON_PRINT_CARD_CONFIG_DIR')
+        os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=str(self.base/'config')
+        def restore():
+            if self._old_config is None: os.environ.pop('EPSON_PRINT_CARD_CONFIG_DIR',None)
+            else: os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=self._old_config
+        self.addCleanup(restore)
+        self.profile=copy.deepcopy(epc.DEFAULT_PROFILE)
         self.fronts=self.base/'fronts';self.fronts.mkdir()
         for i,color in enumerate(('red','green','blue','yellow','cyan','magenta','orange','purple','brown','pink','gray')):
             Image.new('RGB',(86,54),color).save(self.fronts/f'{i:02d}-card.png')
@@ -35,9 +42,9 @@ class CardJob(unittest.TestCase):
     def build(self, front_count=3, group='2x5', profile=None, calibration=False):
         for extra in sorted(self.fronts.iterdir())[front_count:]:
             (self.fronts/extra.name).unlink()
-        profile_path=self.base/'profile.json'
-        epc.write(profile_path,profile or self.profile)
-        args=argparse.Namespace(profile=str(self.base/'profile.json'),
+        active=epc.active_profile_path();active.parent.mkdir(parents=True,exist_ok=True)
+        epc.write(active,profile or self.profile)
+        args=argparse.Namespace(
                                 front_dir=None if calibration else str(self.fronts),
                                 back_img=None if calibration else str(self.base/'back.png'),
                                 group=group,output=str(self.base/'job'),calibration=calibration,dpi=150,fit='contain')
@@ -197,33 +204,48 @@ class CardJob(unittest.TestCase):
         self.assertEqual(rotated.getpixel((10,10)),(0,128,0))
         self.assertEqual(rotated.getpixel((30,70)),(0,0,255))
 
-    def test_translation_calibration_composes_existing_transform(self):
+    def test_calibration_compose_uses_active_file_and_in_place_update(self):
         import numpy as np
         self.profile['transforms']['front']=[1,0,-.5,0,1,.25]
-        epc.write(self.base/'profile.json',self.profile)
+        active=epc.active_profile_path();active.parent.mkdir(parents=True,exist_ok=True)
+        epc.write(active,self.profile)
         samples=[{'expected_mm':[x,y],'observed_mm':[1.01*x+.002*y+1,-.003*x+.99*y-1]} for x,y in [(20,50),(120,50),(20,110),(120,110),(70,80)]]
         epc.write(self.base/'samples.json',samples)
-        epc.calibrate(argparse.Namespace(profile=self.base/'profile.json',samples=self.base/'samples.json',output=self.base/'corrected.json',max_residual=.01))
-        corrected=epc.read(self.base/'corrected.json');a,b,c,d,e,f=corrected['transforms']['front']
+        epc.calibrate(argparse.Namespace(samples=self.base/'samples.json',max_residual=.01,reset=False))
+        corrected=epc.read(active);a,b,c,d,e,f=corrected['transforms']['front']
         new=np.array([[a,b,c],[d,e,f],[0,0,1]])
         old=np.array([[1,0,-.5],[0,1,.25],[0,0,1]])
         physical=np.array([[1.01,.002,1],[-.003,.99,-1],[0,0,1]])@np.linalg.inv(old)
         self.assertTrue(np.allclose(physical@new,np.eye(3),atol=1e-9))
         self.assertFalse(corrected['production_verified'])
 
+    def test_calibrate_reset_restores_builtin(self):
+        active=epc.active_profile_path();active.parent.mkdir(parents=True,exist_ok=True)
+        self.profile['transforms']['front']=[1,0,3,0,1,4]
+        epc.write(active,self.profile)
+        epc.calibrate(argparse.Namespace(samples=None,max_residual=.5,reset=True))
+        self.assertEqual(epc.read(active)['transforms']['front'],[1,0,0,0,1,0])
+
+    def test_prepare_uses_builtin_when_no_active_file(self):
+        os.environ.pop('EPSON_PRINT_CARD_CONFIG_DIR',None)
+        os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=str(self.base/'not-created')
+        m=self.build(3)
+        self.assertEqual(len(m['profile']['slots']),2)
+        self.assertEqual(m['profile']['page_mm'],epc.DEFAULT_PROFILE['page_mm'])
+
     def test_cli_end_to_end_prepare_and_step_preview(self):
         for extra in sorted(self.fronts.iterdir())[3:]:
             (self.fronts/extra.name).unlink()
         out=self.base/'cli-job'
         run=[sys.executable,str(ROOT/'scripts/epson-print-card')]
-        r=subprocess.run(run+['prepare','--profile',str(ROOT/'profiles/l8058-stock-provisional.json'),
-                              '--front-dir',str(self.fronts),'--back-img',str(self.base/'back.png'),
-                              '--group','2x5','--output',str(out),'--dpi','150'],capture_output=True,text=True)
+        env=dict(os.environ,EPSON_PRINT_CARD_CONFIG_DIR=str(self.base/'cli-config'))
+        r=subprocess.run(run+['prepare','--front-dir',str(self.fronts),'--back-img',str(self.base/'back.png'),
+                              '--group','2x5','--output',str(out),'--dpi','150'],capture_output=True,text=True,env=env)
         self.assertEqual(r.returncode,0,r.stderr)
         self.assertTrue((out/'batch-0001-front.pdf').is_file())
         self.assertTrue((out/'batch-0001-back.pdf').is_file())
         self.assertTrue((out/'装卡顺序.html').is_file())
-        r=subprocess.run(run+['step','--job',str(out),'--queue','EPSON_TEST'],capture_output=True,text=True)
+        r=subprocess.run(run+['step','--job',str(out),'--queue','EPSON_TEST'],capture_output=True,text=True,env=env)
         self.assertEqual(r.returncode,0,r.stderr)
         payload=json.loads(r.stdout)
         self.assertEqual((payload['side'],payload['group']),('front',1))
