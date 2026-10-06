@@ -681,9 +681,9 @@ def list_printers():
     """本地 CUPS 队列清单：名称、是否启用、设备通道（socket=局域网直连，epsonremote=云中继）。"""
     printers = {}
     for line in checked_run(['lpstat','-p']).stdout.splitlines():
-        m = re.match(r'printer (\S+) is (idle|processing|stopped)\.?\s+(enabled|disabled)', line.strip())
+        m = re.match(r'printer (\S+) (?:is (idle|processing|stopped)|now printing \S+)\.?\s+(enabled|disabled)', line.strip())
         if m:
-            printers[m[1]] = {'name': m[1], 'state': m[2], 'enabled': m[3] == 'enabled', 'device': ''}
+            printers[m[1]] = {'name': m[1], 'state': m[2] or 'printing', 'enabled': m[3] == 'enabled', 'device': ''}
     for line in checked_run(['lpstat','-v']).stdout.splitlines():
         m = re.match(r'device for (\S+): (\S+)', line.strip())
         if m and m[1] in printers:
