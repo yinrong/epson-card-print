@@ -140,7 +140,7 @@ class CardJob(unittest.TestCase):
         with patch.object(epc,'checked_run',side_effect=AssertionError('must not call printer')):
             epc.step(args)
             args=self.step_args(execute=True,tray_loaded=True)
-            with self.assertRaisesRegex(ValueError,'transport'):epc.step(args)
+            with self.assertRaisesRegex(ValueError,'托盘通道'):epc.step(args)
         self.assertEqual(epc.read(self.base/'job/state.json')['next_event'],0)
 
     def test_file_tampering_refused(self):
@@ -306,15 +306,14 @@ class CardJob(unittest.TestCase):
         self.assertEqual(epc.active_profile()['queue_name'],'EPSON_L8058')
         m=epc.read(folder/'manifest.json')
         self.assertEqual(m['profile']['queue_name'],'EPSON_L8058')
-        self.assertEqual(m['profile']['cups_options'],{'EPIJ_PSrc':'25','EPIJ_Size':'1'})
+        self.assertEqual(m['profile']['cups_options'].get('PageSize'),'A4.ManuCDR')
+        self.assertEqual(m['profile']['cups_options'].get('EPIJ_PSrc'),'25')
         state=epc.read(folder/'state.json')
         self.assertEqual(state['events'][-1]['type'],'queue_switched')
         self.assertEqual(state['manifest_sha256'],epc.digest(folder/'manifest.json'))
-        # 换队列后 step 校验通过（manifest 校验和已刷新）
-        manifest_path=folder/'manifest.json'
-        m=epc.read(manifest_path); m['profile'].update(transport_verified=True,production_verified=True,verification_evidence=['mock'])
-        epc.write(manifest_path,m)
-        state=epc.read(folder/'state.json'); state['manifest_sha256']=epc.digest(manifest_path); epc.write(folder/'state.json',state)
+        # 换队列后 step 校验通过：换绑已整体接管活动 profile（含验证旗标）
+        m=epc.read(folder/'manifest.json')
+        self.assertTrue(m['profile']['transport_verified'] and m['profile']['production_verified'])
         with patch.object(epc,'checked_run',side_effect=fake):
             buf=io.StringIO()
             with redirect_stdout(buf): epc.step(self.step_args(queue='EPSON_L8058',execute=True,tray_loaded=True))

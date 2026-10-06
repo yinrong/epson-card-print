@@ -525,9 +525,9 @@ def step(args):
         if not args.tray_loaded:
             raise ValueError(f'--execute 只是允许投递，还差 --tray-loaded＝已把本盘装进打印机的人工确认。装好后运行：epson-print-card step --job {folder} --queue {queue} --execute --tray-loaded')
         if not profile.get('transport_verified'):
-            raise ValueError('Tray transport/options not verified for this profile')
+            raise ValueError(f'此作业的 profile 未验证托盘通道（多半是旧版 prepare 生成的作业）。一键修复：epson-print-card queue {queue} --job {folder}')
         if not manifest.get('calibration') and not profile.get('production_verified'):
-            raise ValueError('Production profile needs repeat-print evidence; calibration jobs remain available')
+            raise ValueError(f'此作业的 profile 缺生产验证记录。一键修复：epson-print-card queue {queue} --job {folder}（用当前活动配置刷新作业）')
         if not profile.get('verification_evidence'):
             raise ValueError('Profile must record transport/print evidence')
         if profile.get('queue_name') != queue:
@@ -562,6 +562,82 @@ def step(args):
         print(f'Submitted batch {batch["number"]} {side}')
         next_step_hint(folder, queue, manifest, state)
 
+
+# 2026-09-26 step1-driver 链路实印验证过的卡托盘全套驱动选项（photos job19/job20 实拍留档）。
+# 换绑队列一律以此打底：PageSize=A4.ManuCDR（光盘/卡托盘专用页面模式）+ MediaType=199 + EPIJ_PSrc=25。
+PROVEN_TRAY_OPTIONS = {
+ "APCustomColorMatchingProfile": "sRGB",
+ "AP_ColorMatchingMode": "AP_ApplicationColorMatching",
+ "ColorModel": "RGB",
+ "EPIJClientInfo": "1",
+ "EPIJProfileSpec": "1",
+ "EPIJSharedClient": "0",
+ "EPIJSystemLanguage": "en",
+ "EPIJ_ACam": "0",
+ "EPIJ_AFil": "0",
+ "EPIJ_AGai": "1",
+ "EPIJ_APFPrvID": "7",
+ "EPIJ_APri": "0",
+ "EPIJ_ATon": "7",
+ "EPIJ_BSSv": "0",
+ "EPIJ_Bdls": "0",
+ "EPIJ_Bidi_Com": "1",
+ "EPIJ_Brit": "0",
+ "EPIJ_CCor": "12",
+ "EPIJ_CMat": "3",
+ "EPIJ_Cont": "0",
+ "EPIJ_Cyan": "0",
+ "EPIJ_DCCT": "0",
+ "EPIJ_DoneOpnr": "0",
+ "EPIJ_ECAv": "0",
+ "EPIJ_ENAL": "1-1_2-1_3-1_4-1",
+ "EPIJ_ERGB": "0",
+ "EPIJ_ExtStAlK": "0",
+ "EPIJ_F180": "0",
+ "EPIJ_Gamm": "0",
+ "EPIJ_HdofClSp": "0",
+ "EPIJ_Hori": "0",
+ "EPIJ_Ink_": "1",
+ "EPIJ_IsRolBnr": "0",
+ "EPIJ_Mage": "0",
+ "EPIJ_Manu": "0",
+ "EPIJ_Medi": "199",
+ "EPIJ_Mode": "3",
+ "EPIJ_OPT_Bi_D": "1",
+ "EPIJ_OSCMProf": "1",
+ "EPIJ_OSColMat": "2",
+ "EPIJ_PGEx": "0",
+ "EPIJ_PSrc": "25",
+ "EPIJ_PageRegion": "A4.ManuCDR",
+ "EPIJ_PageSize": "A4.ManuCDR",
+ "EPIJ_PrStgAlK": "1027",
+ "EPIJ_Qual": "306",
+ "EPIJ_REye": "0",
+ "EPIJ_RmMg": "0",
+ "EPIJ_SCF_": "1",
+ "EPIJ_Satu": "0",
+ "EPIJ_Silt": "0",
+ "EPIJ_Size": "1",
+ "EPIJ_UEpL": "0",
+ "EPIJ_UpdtPMPr": "1",
+ "EPIJ_Yell": "0",
+ "EPIJ_exmg": "2",
+ "EPSON.PrintModule.Setting.ApplicationPageRect..a.0": "0.00000000000000",
+ "EPSON.PrintModule.Setting.ApplicationPageRect..a.1": "0.00000000000000",
+ "EPSON.PrintModule.Setting.ApplicationPageRect..a.2": "825.01000976562500",
+ "EPSON.PrintModule.Setting.ApplicationPageRect..a.3": "578.39998817443848",
+ "EPSON.PrintModule.Setting.ApplicationPaperRect..a.0": "-8.39996337890625",
+ "EPSON.PrintModule.Setting.ApplicationPaperRect..a.1": "-8.39999961853027",
+ "EPSON.PrintModule.Setting.ApplicationPaperRect..a.2": "833.40002441406250",
+ "EPSON.PrintModule.Setting.ApplicationPaperRect..a.3": "586.80001258850098",
+ "EPSON.PrintModule.Setting.Encoding..n.": "0",
+ "EPSON.PrintModule.Setting.PrinterName": "EPSON L8050 Series(25,0)",
+ "EPSON.PrintModule.Setting.SystType..n.": "3072",
+ "MediaType": "199",
+ "PageSize": "A4.ManuCDR",
+ "Resolution": "720x720dpi",
+ "cupsBorderlessScalingFactor": "1.00"
+}
 
 A4_MM = (210.0, 297.0)
 
@@ -789,7 +865,7 @@ def queue_cmd(args):
     profile = active_profile()
     old = profile.get('queue_name')
     profile['queue_name'] = name; profile['tray_option'] = 'EPIJ_PSrc'
-    profile['cups_options'] = {'EPIJ_PSrc':'25','EPIJ_Size':'1'}
+    profile['cups_options'] = {**PROVEN_TRAY_OPTIONS, 'EPIJ_PSrc': '25', 'EPIJ_Size': '1'}
     validate(profile)
     path = active_profile_path(); path.parent.mkdir(parents=True, exist_ok=True)
     write(path, profile)
@@ -802,9 +878,8 @@ def queue_cmd(args):
         pending = state['events'][-1] if state['events'] and state['events'][-1].get('index') == idx else None
         if pending and idx < len(events):
             raise ValueError('当前盘已提交未确认（submitted/uncertain）：先 --confirm-output 或处理完该盘，再换队列')
-        manifest['profile']['queue_name'] = name
-        manifest['profile']['tray_option'] = 'EPIJ_PSrc'
-        manifest['profile']['cups_options'] = {'EPIJ_PSrc':'25','EPIJ_Size':'1'}
+        # 作业整体接管当前活动 profile（队列绑定+验证旗标+校准一起同步，避免旧作业半绑状态）
+        manifest['profile'] = active_profile()
         write(folder/'manifest.json', manifest)
         state['events'].append({'type':'queue_switched','from':old,'to':name,'at':dt.datetime.now().astimezone().isoformat()})
         state['manifest_sha256'] = digest(folder/'manifest.json')
