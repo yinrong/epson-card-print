@@ -1,5 +1,11 @@
 # 程序与 SKILL 执行结果
 
+> **2026-09-27 复刻托盘的 3D 打印设计部分已搬到独立项目**：
+> [`dev2/3d-man5/01-需求/epson-card-tray/`](/Users/derek.yin/dev2/3d-man5/01-需求/epson-card-tray/README.md)
+> （代码在该仓库 `03-流水线/epson-card-tray/`，产物在 `~/db/3d/epson-card-tray/`）。
+> 本文件下方记录的托架 STL/SCAD 是搬家前的早期概念版本，当前有效版本见新项目。
+> 本项目继续只管喷墨打印那条链路（驱动、CUPS、`cardprint.py` 排版与坐标校准）。
+
 已安装 [epson-pvc-print SKILL](/Users/derek.yin/.codex/skills/epson-pvc-print/SKILL.md)。批量排版、逐盘正反面作业、仿射校准、托架参数生成及 STL 导出已实现；L8058 实机输出尚未验证。
 
 | 交付 | 当前证据 |
