@@ -9,8 +9,10 @@ description: Epson L8058 证卡（PVC 卡）组批打印程序——目录正面
 
 ```bash
 epson-print-card prepare --front-dir {dir} --back-img {path} --group 2x5 --output /new/job
-epson-print-card step --job /new/job --queue VERIFIED_EPSON_QUEUE
+epson-print-card step --job /new/job          # 队列首次会引导选一次，之后不再问
 ```
+
+**队列一次性选择**：`--queue` 可完全省略。首次需要队列时（交互环境）列出本机打印机按编号选一次，或用 `epson-print-card queue --name L8058__Remote_`（或任一命令带一次 `--queue`）设定；选择存 `~/.config/epson-print-card/queue.json`，之后所有命令自动使用。列表按 Epson/L8058 优先排序并标注通道（局域网直连/云中继）。换打印机时重跑 `epson-print-card queue`。
 
 `--group 2x5` 含义：每托盘 2 张卡（原配双卡托盘，槽数不能变，程序强制校验），每批 5 个托盘＝10 张卡。批次流程：装满 5 盘 → 逐盘打印正面（每盘确认出盘）→ 整批干燥（`--confirm-dry`）→ 按背面槽位翻卡装回 → 逐盘打印背面 → 再次干燥（`--confirm-dry`）→ 换下一批卡。
 
@@ -25,10 +27,10 @@ epson-print-card step --job /new/job --queue VERIFIED_EPSON_QUEUE
 把一个目录的所有图片拼成 A4、0 间距网格，整册一个多页 PDF 一次提交（普通纸，不走托盘流程）：
 
 ```bash
-epson-print-card sheet --front-dir {dir} --queue NAME [--columns N] [--scale 2] [--rotate 180] [--execute] --output /new/dir
+epson-print-card sheet --front-dir {dir} [--columns N] [--scale 2] [--rotate 180] [--execute] --output /new/dir
 ```
 
-列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--scale` 把自动网格的格子精确放大 N 倍（图片保持紧贴，多余页边留白）；`--rotate` 顺时针旋转图片 0/90/180/270。`--queue` 给出即显示提交命令，`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）；同批 2 倍放大 → 4 列×4 行、5 页。
+列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--scale` 把自动网格的格子精确放大 N 倍（图片保持紧贴，多余页边留白）；`--rotate` 顺时针旋转图片 0/90/180/270。不带 `--queue` 时用一次性选择的默认队列；`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）；同批 2 倍放大 → 4 列×4 行、5 页。
 
 ## 作业推进（step）
 

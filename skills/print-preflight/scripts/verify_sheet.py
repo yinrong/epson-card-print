@@ -35,6 +35,12 @@ def region_diff(a, b):
     return sum(stat.mean)/3
 
 
+def content_bbox(im, tol=12):
+    """页面内容区（自动裁掉白边），整页铺满时即整页；四个候选共用同一裁剪，保持公平。"""
+    diff = ImageChops.difference(im, Image.new('RGB', im.size, 'white')).convert('L')
+    return diff.point(lambda v: 255 if v > tol else 0).getbbox()
+
+
 def parse_mm(text):
     w, h = text.lower().split('x', 1)
     return float(w), float(h)
@@ -61,6 +67,9 @@ def main():
     ch = page.height * ((parse_mm(args.cell)[1] if args.cell else ph_mm)/ph_mm)
     x0, y0 = int(args.col*cw), int(args.row*ch)
     region = page.crop((x0, y0, min(int(x0+cw), page.width), min(int(y0+ch), page.height)))
+    bbox = content_bbox(region)
+    if bbox and (bbox[2]-bbox[0]) > 8 and (bbox[3]-bbox[1]) > 8:
+        region = region.crop(bbox)
 
     src = Image.open(args.source).convert('RGB')
     candidates = {
