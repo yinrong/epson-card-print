@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 skill_root="$(cd "$(dirname "$0")/.." && pwd)"
-venv_path="$HOME/.cache/epson-card-front-print/venv"
+venv_path="$HOME/.cache/epson-print-card/venv"
 base_python="$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
 if [ ! -x "$base_python" ]; then base_python="$(command -v python3)"; fi
 if command -v uv >/dev/null; then

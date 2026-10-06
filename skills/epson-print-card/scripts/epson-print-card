@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
-"""Millimetre card composition for front-only (正卡) manual-tray jobs."""
+"""证卡（PVC 卡）组批打印：目录正面图＋共享背面图，2 卡托盘分组，正/背面之间设干燥门控。
+
+用法核心：
+  epson-print-card prepare --front-dir DIR --back-img PATH --group 2x5 --profile P --output JOBDIR
+  epson-print-card step --job JOBDIR --queue NAME [--execute --tray-loaded] [--confirm-output] [--confirm-dry]
+
+--group 2x5 含义：每托盘 2 张卡（原配托盘，数量不能变），每批 5 个托盘（10 张卡）。
+批次流程：逐盘打印正面 → 全批干燥（--confirm-dry）→ 翻卡逐盘打印背面 → 再次干燥 → 换下一批。
+"""
 import argparse
-import csv
 import datetime as dt
 import hashlib
 import html
@@ -17,6 +24,7 @@ import tempfile
 
 PT = 72 / 25.4
 IDENTITY = [1, 0, 0, 0, 1, 0]  # x'=a*x+b*y+c, y'=d*x+e*y+f
+IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp', '.webp'}
 
 
 def read(path):
@@ -102,33 +110,38 @@ def validate(profile):
     return profile
 
 
-def load_cards(path):
-    path = Path(path).resolve()
-    with path.open(newline='', encoding='utf-8-sig') as f:
-        rows = list(csv.DictReader(f))
-    expanded, seen = [], set()
-    for row in rows:
-        card_id = row.get('id', '').strip()
-        if not card_id or card_id in seen:
-            raise ValueError('CSV id must be nonempty and unique')
+def parse_group(spec):
+    m = re.fullmatch(r'(\d+)[xX×](\d+)', str(spec or '').strip())
+    if not m:
+        raise ValueError('--group must look like 2x5 (slots per tray x trays per batch)')
+    slots, trays = int(m[1]), int(m[2])
+    if slots != 2:
+        raise ValueError('this workflow uses the stock 2-card tray; slots per tray cannot change (got %d)' % slots)
+    if not 1 <= trays <= 100:
+        raise ValueError('trays per batch must be 1..100')
+    return slots, trays
+
+
+def load_cards(front_dir, back_img):
+    front_dir = Path(front_dir).resolve()
+    if not front_dir.is_dir():
+        raise ValueError(f'Not a directory: {front_dir}')
+    back = Path(back_img).resolve()
+    if not back.is_file():
+        raise ValueError(f'Missing back image: {back}')
+    files = sorted(p for p in front_dir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES)
+    if not files:
+        raise ValueError(f'No images found in {front_dir}')
+    cards, seen = [], set()
+    for f in files:
+        card_id = f.stem
+        if card_id in seen:
+            raise ValueError(f'Duplicate card id from filename stem: {card_id}')
         seen.add(card_id)
-        quantity = int(row.get('quantity', '') or 1)
-        if not 1 <= quantity <= 10000:
-            raise ValueError('quantity must be 1..10000')
-        item = {'id': card_id}
-        if not row.get('front'):
-            raise ValueError(f'{card_id}: missing front image')
-        image = (path.parent / row['front']).resolve()
-        if not image.is_file():
-            raise ValueError(f'Missing image: {image}')
-        item['front'] = str(image)
-        for copy in range(1, quantity+1):
-            expanded.append(dict(item, copy=copy))
-    if not expanded:
-        raise ValueError('No cards in CSV')
-    if len(expanded) > 10000:
+        cards.append({'id': card_id, 'front': str(f), 'back': str(back)})
+    if len(cards) > 10000:
         raise ValueError('At most 10000 cards per job')
-    return expanded
+    return cards
 
 
 def fitted(path, size, fit, rotation):
@@ -216,18 +229,18 @@ def make_pdf(path, profile, placements, side, dpi, fit, calibration=False):
             c.restoreState()
             continue
         clip = c.beginPath(); clip.rect(x, y, w, h); c.clipPath(clip, stroke=0)
-        rotation = slot.get('rotation', 0)
+        rotation = slot.get('rotation', 0) + (profile.get('back_rotation', 0) if side == 'back' else 0)
         pixels = (max(1,round(w*dpi/25.4)), max(1,round(h*dpi/25.4)))
         if fit == 'exact':
             # Card art at 1:1 inside the nominal card area; bleed repeats the edge pixels outward.
             bleed = profile.get('bleed_mm', 0)
             b = round(bleed*dpi/25.4)
-            core = fitted(placement['card']['front'], (pixels[0]-2*b, pixels[1]-2*b), fit, rotation)
+            core = fitted(placement['card'][side], (pixels[0]-2*b, pixels[1]-2*b), fit, rotation)
             from PIL import Image
             import numpy as np
             im = Image.fromarray(np.pad(np.asarray(core), ((b, b), (b, b), (0, 0)), mode='edge'))
         else:
-            im = fitted(placement['card']['front'], pixels, fit, rotation)
+            im = fitted(placement['card'][side], pixels, fit, rotation)
         c.translate(x, y+h); c.scale(1,-1)
         c.drawImage(ImageReader(im),0,0,width=w,height=h)
         c.restoreState()
@@ -235,37 +248,58 @@ def make_pdf(path, profile, placements, side, dpi, fit, calibration=False):
 
 
 def prepare(args):
+    slots_per_tray, trays_per_group = parse_group(args.group)
     profile = validate(read(args.profile))
-    cards = load_cards(args.cards) if not args.calibration else [dict(id='calibration-'+s['id'], copy=1) for s in profile['slots']]
+    if len(profile['slots']) != slots_per_tray:
+        raise ValueError(f'profile has {len(profile["slots"])} slots but --group says {slots_per_tray} per tray; use the matching 2-slot profile')
+    if args.calibration:
+        cards = [{'id':'calibration-'+s['id'],'front':None,'back':None} for s in profile['slots']]
+    else:
+        if not args.front_dir or not args.back_img:
+            raise ValueError('--front-dir and --back-img are required (or use --calibration)')
+        cards = load_cards(args.front_dir, args.back_img)
     output = Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     # Manifest appears only after every file is complete. Failed folders are not runnable.
     capacity = len(profile['slots'])
-    manifest = {'schema':1,'mode':'front-only','profile':profile,'calibration':args.calibration,
-                'created_at':dt.datetime.now().astimezone().isoformat(),'cards':len(cards),'batches':[]}
+    mapping = profile.get('back_slot_map', [s['id'] for s in profile['slots']])
+    by_id = {s['id']:s for s in profile['slots']}
+    manifest = {'schema':2,'mode':'card-group','group':{'slots_per_tray':slots_per_tray,'trays_per_group':trays_per_group},
+                'profile':profile,'calibration':args.calibration,'created_at':dt.datetime.now().astimezone().isoformat(),
+                'cards':len(cards),'back_image':cards[0]['back'],'batches':[]}
     manifest['runtime']={'python':sys.version.split()[0],**{name:importlib.metadata.version(name) for name in ('Pillow','reportlab')}}
     for start in range(0,len(cards),capacity):
-        batch_num = start//capacity+1
-        batch = {'number':batch_num,'cards':cards[start:start+capacity],'sides':{}}
-        placements = [{'card':card,'slot':profile['slots'][i]} for i,card in enumerate(batch['cards'])]
-        filename = f'batch-{batch_num:04d}-front.pdf'
-        path = output/filename
-        make_pdf(path,profile,placements,'front',args.dpi,args.fit,args.calibration)
-        batch['sides']['front'] = {'file':filename,'sha256':digest(path),'placements':[{'id':p['card']['id'],'copy':p['card']['copy'],'slot':p['slot']['id']} for p in placements]}
+        index = start//capacity
+        group_num = index//trays_per_group+1
+        batch_num = index+1
+        batch = {'number':batch_num,'group':group_num,'cards':cards[start:start+capacity],'sides':{}}
+        for side in ('front','back'):
+            placements = [{'card':card,'slot':profile['slots'][i] if side=='front' else by_id[mapping[i]]} for i,card in enumerate(batch['cards'])]
+            filename = f'batch-{batch_num:04d}-{side}.pdf'
+            path = output/filename
+            make_pdf(path,profile,placements,side,args.dpi,args.fit,args.calibration)
+            batch['sides'][side] = {'file':filename,'sha256':digest(path),'placements':[{'id':p['card']['id'],'slot':p['slot']['id']} for p in placements]}
         manifest['batches'].append(batch)
     write(output/'manifest.json',manifest)
     write(output/'state.json',{'manifest_sha256':digest(output/'manifest.json'),'next_event':0,'events':[]})
-    lines = ['<!doctype html><meta charset="utf-8"><title>Card loading plan</title><style>body{font:16px system-ui;max-width:960px;margin:32px auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:8px}}</style>',
-             '<h1>逐盘正卡打印（仅正面）</h1><p>每盘顺序：装卡 → 提交正面 → 确认出盘 → 下一盘。不翻卡、不打印背面。保持托架进机方向一致。图像按正常阅读方向提供，程序不镜像文字。</p>']
-    for b in manifest['batches']:
-        lines.append(f'<h2>第 {b["number"]} 盘</h2><table><tr><th>卡号</th><th>份数序号</th><th>槽位</th></tr>')
-        for placement in b['sides']['front']['placements']:
-            lines.append('<tr>'+''.join(f'<td>{html.escape(str(v))}</td>' for v in (placement['id'],placement['copy'],placement['slot']))+'</tr>')
+    groups = manifest['batches'][-1]['group'] if manifest['batches'] else 0
+    lines = ['<!doctype html><meta charset="utf-8"><title>证卡装卡计划</title><style>body{font:16px system-ui;max-width:960px;margin:32px auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:8px}}</style>',
+             f'<h1>证卡组批打印（每托盘 {slots_per_tray} 卡 × 每批 {trays_per_group} 盘）</h1>',
+             f'<p>每批顺序：装满 {trays_per_group} 盘 → 逐盘打印正面（每盘确认出盘）→ 整批干燥（--confirm-dry）→ 按背面槽位翻卡装回 → 逐盘打印背面 → 再次干燥（--confirm-dry）→ 换下一批卡。保持托架进机方向一致；图像按正常阅读方向提供，程序不镜像文字。所有卡共用同一张背面图。</p>']
+    for g in range(1,groups+1):
+        batches=[b for b in manifest['batches'] if b['group']==g]
+        lines.append(f'<h2>第 {g} 批（{len(batches)} 盘）</h2><table><tr><th>盘号</th><th>卡号</th><th>正面槽</th><th>背面槽</th></tr>')
+        for b in batches:
+            for front,back in zip(b['sides']['front']['placements'],b['sides']['back']['placements']):
+                lines.append('<tr>'+''.join(f'<td>{html.escape(str(v))}</td>' for v in (b['number'],front['id'],front['slot'],back['slot']))+'</tr>')
         lines.append('</table>')
-        name = b['sides']['front']['file']
-        lines.append(f'<p><a href="{name}">{name}</a></p>')
+        for b in batches:
+            for side in ('front','back'):
+                name=b['sides'][side]['file']
+                lines.append(f'<p><a href="{name}">{name}</a></p>')
     (output/'装卡顺序.html').write_text('\n'.join(lines))
-    print(json.dumps({'output':str(output),'cards':len(cards),'batches':len(manifest['batches']),'mode':'front-only','physical_verified':False},ensure_ascii=False))
+    print(json.dumps({'output':str(output),'cards':len(cards),'batches':len(manifest['batches']),'groups':groups,
+                      'group_size':slots_per_tray*trays_per_group,'mode':'card-group','calibration':args.calibration,'physical_verified':False},ensure_ascii=False))
 
 
 def calibrate(args):
@@ -273,7 +307,7 @@ def calibrate(args):
     profile = validate(read(args.profile))
     samples = read(args.samples)
     if len(samples) < 4:
-        raise ValueError('Use at least four measured points, spread across all slots')
+        raise ValueError('Use at least four measured points, spread across both slots')
     expected = np.array([s['expected_mm'] for s in samples], dtype=float)
     observed = np.array([s['observed_mm'] for s in samples], dtype=float)
     if expected.shape != observed.shape or expected.shape[1:] != (2,) or not np.isfinite(expected).all() or not np.isfinite(observed).all():
@@ -284,7 +318,7 @@ def calibrate(args):
         raise ValueError('Calibration points are collinear or poorly spread')
     forward = np.array([[coeff[0,0],coeff[1,0],coeff[2,0]],[coeff[0,1],coeff[1,1],coeff[2,1]],[0,0,1]])
     if np.linalg.det(forward[:2,:2]) <= 0:
-        raise ValueError('Reflected observations: check point IDs and orientation')
+        raise ValueError('Reflected observations: check point IDs and flip direction')
     error = np.linalg.norm(design@coeff-observed,axis=1)
     if max(error) > args.max_residual:
         raise ValueError(f'Measurements inconsistent; residual {max(error):.3f} mm')
@@ -323,11 +357,26 @@ def command(profile, queue, pdf):
     return cmd+['--',str(pdf)]
 
 
-def next_event(manifest, state):
-    index = state['next_event']
-    if index >= len(manifest['batches']):
-        return None
-    return manifest['batches'][index], 'front'
+def job_events(manifest):
+    """Flat event list: per group, fronts tray by tray, a drying gate, backs tray by tray, a drying gate."""
+    events = []
+    groups = manifest['batches'][-1]['group'] if manifest['batches'] else 0
+    for g in range(1,groups+1):
+        batches = [b for b in manifest['batches'] if b['group']==g]
+        for b in batches:
+            events.append({'type':'side','batch':b['number'],'side':'front'})
+        events.append({'type':'dry','group':g,'phase':'backs'})
+        for b in batches:
+            events.append({'type':'side','batch':b['number'],'side':'back'})
+        events.append({'type':'dry','group':g,'phase':'next batch'})
+    return events
+
+
+def describe_event(ev, manifest):
+    if ev['type'] == 'dry':
+        return f"dry group {ev['group']} before {ev['phase']}"
+    batch = manifest['batches'][ev['batch']-1]
+    return f"batch {ev['batch']} ({batch['group']}) {ev['side']}"
 
 
 def step(args):
@@ -339,32 +388,49 @@ def step(args):
         manifest,state = read(folder/'manifest.json'),read(folder/'state.json')
         if state['manifest_sha256'] != digest(folder/'manifest.json'):
             raise ValueError('Manifest changed; create a new job')
-        event = next_event(manifest,state)
-        if event is None:
-            print('All fronts manually confirmed'); return 'All fronts manually confirmed'
-        batch,side = event
+        events = job_events(manifest)
+        index = state['next_event']
+        if index >= len(events):
+            print('All groups printed and dried'); return 'All groups printed and dried'
+        ev = events[index]
+        pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==index else None
+        if ev['type'] == 'dry':
+            if args.confirm_output:
+                raise ValueError('Current step is a drying gate; use --confirm-dry, not --confirm-output')
+            if args.confirm_dry:
+                state['next_event'] += 1; write(folder/'state.json',state)
+                nxt = events[index+1] if index+1 < len(events) else None
+                print(f"Group {ev['group']} dried; next: {describe_event(nxt,manifest) if nxt else 'job complete'}")
+                return
+            print(json.dumps({'waiting':'drying','group':ev['group'],'before':ev['phase'],
+                              'hint':'ink must dry before flipping or swapping cards; pass --confirm-dry to advance'},ensure_ascii=False))
+            return
+        batch = manifest['batches'][ev['batch']-1]
+        side = ev['side']
         spec = batch['sides'][side]; pdf=folder/spec['file']
         if digest(pdf) != spec['sha256']:
             raise ValueError('PDF changed; create a new job')
-        pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==state['next_event'] else None
+        if args.confirm_dry:
+            raise ValueError('No drying gate pending; --confirm-dry applies only after a whole group side')
         if args.confirm_output:
             if not pending or pending['status'] not in ('submitted','submission_uncertain'):
                 raise ValueError('No submitted side to confirm')
             pending['status']='operator_confirmed'; pending['confirmed_at']=dt.datetime.now().astimezone().isoformat()
             state['next_event'] += 1; write(folder/'state.json',state)
-            print(f'Confirmed batch {batch["number"]} front; use step again after loading the next tray'); return
+            print(f'Confirmed batch {batch["number"]} {side}; use step again for the next tray')
+            return
         if pending:
             raise ValueError('Side already submitted or outcome uncertain; inspect printer/CUPS and confirm output. No automatic resend.')
         profile = validate(manifest['profile'])
         cmd = command(profile,args.queue,pdf)
-        print(json.dumps({'batch':batch['number'],'side':side,'placements':spec['placements'],'argv':cmd,'execute':args.execute},ensure_ascii=False))
+        print(json.dumps({'batch':batch['number'],'group':batch['group'],'side':side,'placements':spec['placements'],'argv':cmd,'execute':args.execute},ensure_ascii=False))
         if not args.execute:
             return
         if not args.tray_loaded:
-            raise ValueError('Load the specified tray, then pass --tray-loaded')
+            raise ValueError('Load the specified tray side, then pass --tray-loaded')
         if not profile.get('transport_verified'):
             raise ValueError('Tray transport/options not verified for this profile')
-        if not manifest['calibration'] and not profile.get('production_verified'):
+        if not manifest.get('calibration') and not profile.get('production_verified'):
             raise ValueError('Production profile needs repeat-print evidence; calibration jobs remain available')
         if not profile.get('verification_evidence'):
             raise ValueError('Profile must record transport/print evidence')
@@ -391,28 +457,28 @@ def step(args):
             model += ppd.read_text(errors='replace')
         if not re.search(r'epson|L805[08]',model,re.I):
             raise ValueError('Cannot identify target as Epson; inspect queue before submitting')
-        pending={'index':state['next_event'],'batch':batch['number'],'side':side,'status':'submission_uncertain','started_at':dt.datetime.now().astimezone().isoformat()}
+        pending={'index':index,'batch':batch['number'],'group':batch['group'],'side':side,'status':'submission_uncertain','started_at':dt.datetime.now().astimezone().isoformat()}
         state['events'].append(pending);write(folder/'state.json',state)
         result=checked_run(cmd)  # An error deliberately leaves an uncertain state.
         match=re.search(r'request id is (\S+)',result.stdout)
         pending.update(status='submitted',cups_job_id=match.group(1) if match else None)
         write(folder/'state.json',state)
-        print('Submitted one front; confirm physical output before advancing')
+        print(f'Submitted batch {batch["number"]} {side}; confirm physical output before advancing')
 
 
 def parser():
-    p=argparse.ArgumentParser(description=__doc__); sub=p.add_subparsers(dest='cmd',required=True)
-    b=sub.add_parser('prepare');b.add_argument('--profile',required=True);b.add_argument('--cards');b.add_argument('--output',required=True)
-    b.add_argument('--calibration',action='store_true');b.add_argument('--dpi',type=int,choices=(150,300,600),default=300);b.add_argument('--fit',choices=('cover','contain','exact'),default='contain');b.set_defaults(func=prepare)
+    p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter); sub=p.add_subparsers(dest='cmd',required=True)
+    b=sub.add_parser('prepare');b.add_argument('--profile',required=True);b.add_argument('--front-dir');b.add_argument('--back-img')
+    b.add_argument('--group',required=True);b.add_argument('--output',required=True);b.add_argument('--calibration',action='store_true')
+    b.add_argument('--dpi',type=int,choices=(150,300,600),default=300);b.add_argument('--fit',choices=('cover','contain','exact'),default='contain');b.set_defaults(func=prepare)
     c=sub.add_parser('calibrate');c.add_argument('--profile',required=True);c.add_argument('--samples',required=True);c.add_argument('--output',required=True);c.add_argument('--max-residual',type=float,default=.5);c.set_defaults(func=calibrate)
-    s=sub.add_parser('step');s.add_argument('--job',required=True);s.add_argument('--queue');s.add_argument('--execute',action='store_true');s.add_argument('--tray-loaded',action='store_true');s.add_argument('--confirm-output',action='store_true');s.set_defaults(func=step)
+    s=sub.add_parser('step');s.add_argument('--job',required=True);s.add_argument('--queue');s.add_argument('--execute',action='store_true');s.add_argument('--tray-loaded',action='store_true')
+    s.add_argument('--confirm-output',action='store_true');s.add_argument('--confirm-dry',action='store_true');s.set_defaults(func=step)
     return p
 
 
 def main():
     args=parser().parse_args()
-    if args.cmd=='prepare' and not args.calibration and not args.cards:
-        raise ValueError('--cards required except for calibration')
     args.func(args)
 
 

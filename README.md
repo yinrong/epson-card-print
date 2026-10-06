@@ -11,6 +11,6 @@
 | [05 参数化托架与图像程序](40-任务排序/05-参数化3D托架与图像程序.md) | 排版程序及 SCAD 概念件完成 | 04 排布、02 输出后端 | `/Users/derek.yin/db/epson-l8058/step05-prototype/`（预定） |
 | [06 正反面校准与重复试印](40-任务排序/06-正反面校准与重复试印.md) | 校准与逐盘程序已测试；实机待验 | 05 实物与程序 | `/Users/derek.yin/db/epson-l8058/step06-validation/`（预定） |
 
-[固定目标与执行记录](PLAN.md) · [原话出处](10-原始需求/README.md) · [核心需求](15-核心需求/需求基线.md) · [验收清单](50-验收清单/README.md) · [正卡打印 SKILL](skills/epson-card-front-print/SKILL.md)（源码，已装 `~/.zcode/skills/` 与 `~/.codex/skills/`）
+[固定目标与执行记录](PLAN.md) · [原话出处](10-原始需求/README.md) · [核心需求](15-核心需求/需求基线.md) · [验收清单](50-验收清单/README.md) · [epson-print-card 证卡程序](skills/epson-print-card/SKILL.md)（源码；已装 `~/.zcode/skills/`、`~/.codex/skills/`，PATH 命令 `epson-print-card`）
 
 已有研究：[多卡托架规划](/Users/derek.yin/.claude/delivered-results/epson-l8058/多卡托架规划/latest/L8058多卡托架规划.md)。四卡与十卡尺寸均为条件算例，最大卡数由实测确定。当前目录是本地任务目录；本轮不提交打印作业。
