@@ -32,14 +32,15 @@ IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp', '.webp'}
 DEFAULT_PROFILE = {
     "name": "L8058 stock two-slot (built-in)",
     "page_mm": [209.9733333333, 296.9683333333],
-    "inset_mm": 3,
+    "inset_mm": 0,
+    "bleed_mm": 1.5,
     "slots": [
-        {"id": "S1", "x": 10.677, "y": 38.739, "w": 54, "h": 86, "rotation": 90},
-        {"id": "S2", "x": 85.183, "y": 38.739, "w": 54, "h": 86, "rotation": 90}
+        {"id": "S1", "x": 10.677, "y": 38.739, "w": 54, "h": 86, "rotation": 0},
+        {"id": "S2", "x": 85.183, "y": 38.739, "w": 54, "h": 86, "rotation": 0}
     ],
     "back_slot_map": ["S1", "S2"],
     "back_rotation": 0,
-    "transforms": {"front": [1, 0, 0, 0, 1, 0], "back": [1, 0, 0, 0, 1, 0]},
+    "transforms": {"front": [1, 0, -1.0, 0, 1, 0], "back": [1, 0, -1.0, 0, 1, 0]},
     "cups_options": {},
     "queue_name": None,
     "tray_option": None,

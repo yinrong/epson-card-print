@@ -224,7 +224,7 @@ class CardJob(unittest.TestCase):
         self.profile['transforms']['front']=[1,0,3,0,1,4]
         epc.write(active,self.profile)
         epc.calibrate(argparse.Namespace(samples=None,max_residual=.5,reset=True))
-        self.assertEqual(epc.read(active)['transforms']['front'],[1,0,0,0,1,0])
+        self.assertEqual(epc.read(active)['transforms']['front'],epc.DEFAULT_PROFILE['transforms']['front'])
 
     def test_prepare_uses_builtin_when_no_active_file(self):
         os.environ.pop('EPSON_PRINT_CARD_CONFIG_DIR',None)
