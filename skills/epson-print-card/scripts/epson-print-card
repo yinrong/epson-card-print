@@ -437,7 +437,7 @@ def next_step_hint(folder, queue, manifest, state):
     if idx >= len(events):
         print('▶ 下一步：没有了——全部批次完成打印与干燥，作业结束。')
         return
-    pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==idx else None
+    pending = state['events'][-1] if state['events'] and state['events'][-1].get('index')==idx else None
     ev = events[idx]
     if ev['type'] == 'side' and pending and pending.get('status') in ('submitted','submission_uncertain'):
         print(f'▶ 下一步：等打印机出盘，检查本面实物没问题后运行（确认后才推进）\n  {step_cmd} --confirm-output\n  （打印机无动作先查它是否在线；本任务已提交不会自动重发）')
@@ -484,7 +484,7 @@ def step(args):
             print('All groups printed and dried'); next_step_hint(folder, hint_queue, manifest, state)
             return 'All groups printed and dried'
         ev = events[index]
-        pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==index else None
+        pending = state['events'][-1] if state['events'] and state['events'][-1].get('index')==index else None
         if ev['type'] == 'dry':
             if args.confirm_output:
                 raise ValueError('Current step is a drying gate; use --confirm-dry, not --confirm-output')
@@ -730,9 +730,89 @@ def choose_queue(explicit=None):
     return chosen
 
 
+def queue_status():
+    """队列清单＋实时探测：局域网 socket 在线与否、驱动是否支持卡托盘（EPIJ_PSrc 25）。"""
+    import socket
+    rows = []
+    for p in list_printers():
+        entry = dict(p); entry['online'] = None; entry['card_tray'] = False
+        m = re.match(r'socket://([^:/]+):(\d+)', p['device'] or '')
+        if m:
+            s = socket.socket(); s.settimeout(1.0)
+            try:
+                s.connect((m[1], int(m[2]))); entry['online'] = True
+            except OSError:
+                entry['online'] = False
+            finally:
+                s.close()
+        elif (p['device'] or '').startswith('epsonremote://'):
+            entry['online'] = '云中继'
+        try:
+            opts = checked_run(['lpoptions','-p',p['name'],'-l']).stdout
+            for line in opts.splitlines():
+                if line.startswith('EPIJ_PSrc') and ':' in line:
+                    values = {v.lstrip('*') for v in line.split(':',1)[1].split()}
+                    entry['card_tray'] = '25' in values
+        except subprocess.SubprocessError:
+            pass
+        rows.append(entry)
+    return rows
+
+
+def card_tray_options(queue):
+    opts = checked_run(['lpoptions','-p',queue,'-l']).stdout
+    for line in opts.splitlines():
+        if line.startswith('EPIJ_PSrc') and ':' in line:
+            return {v.lstrip('*') for v in line.split(':',1)[1].split()}
+    return set()
+
+
 def queue_cmd(args):
-    chosen = choose_queue(explicit=args.name)
-    print(json.dumps({'saved_queue': chosen, 'store': str(queue_store_path())}, ensure_ascii=False))
+    if not args.name:
+        rows = queue_status()
+        print('队列'.ljust(18), '启用'.ljust(5), '在线'.ljust(6), '卡托盘', ' 通道')
+        for r in rows:
+            online = {True:'是', False:'否', None:'-', '云中继':'云中继'}[r['online']]
+            print(r['name'].ljust(18), ('是' if r['enabled'] else '否').ljust(5), online.ljust(6),
+                  ('支持' if r['card_tray'] else '不支持'), '', r['device'])
+        print('▶ 下一步：换绑队列运行  epson-print-card queue 队列名 --job 作业目录（没有进行中的作业可省 --job）')
+        return
+    name = args.name
+    names = {p['name'] for p in list_printers()}
+    if name not in names:
+        raise ValueError(f'No local printer named {name}; available: {sorted(names) or "none"}')
+    choices = card_tray_options(name)
+    if '25' not in choices:
+        others = [r['name'] for r in queue_status() if r['card_tray']]
+        raise ValueError(f'{name} 的驱动不支持卡托盘（EPIJ_PSrc 无 25 选项）；支持卡托盘的队列：{others or "无"}')
+    choose_queue(name)
+    profile = active_profile()
+    old = profile.get('queue_name')
+    profile['queue_name'] = name; profile['tray_option'] = 'EPIJ_PSrc'
+    profile['cups_options'] = {'EPIJ_PSrc':'25','EPIJ_Size':'1'}
+    validate(profile)
+    path = active_profile_path(); path.parent.mkdir(parents=True, exist_ok=True)
+    write(path, profile)
+    print(json.dumps({'queue': name, 'tray': 'EPIJ_PSrc=25 (Disc/ID Card Tray)', 'active_profile': str(path)}, ensure_ascii=False))
+    if args.job:
+        folder = Path(args.job).resolve()
+        manifest, state = read(folder/'manifest.json'), read(folder/'state.json')
+        events = job_events(manifest)
+        idx = state['next_event']
+        pending = state['events'][-1] if state['events'] and state['events'][-1].get('index') == idx else None
+        if pending and idx < len(events):
+            raise ValueError('当前盘已提交未确认（submitted/uncertain）：先 --confirm-output 或处理完该盘，再换队列')
+        manifest['profile']['queue_name'] = name
+        manifest['profile']['tray_option'] = 'EPIJ_PSrc'
+        manifest['profile']['cups_options'] = {'EPIJ_PSrc':'25','EPIJ_Size':'1'}
+        write(folder/'manifest.json', manifest)
+        state['events'].append({'type':'queue_switched','from':old,'to':name,'at':dt.datetime.now().astimezone().isoformat()})
+        state['manifest_sha256'] = digest(folder/'manifest.json')
+        write(folder/'state.json', state)
+        print(json.dumps({'job': str(folder), 'queue_switched': f'{old} -> {name}'}, ensure_ascii=False))
+        next_step_hint(folder, name, manifest, state)
+    else:
+        print('▶ 下一步：作业用新队列继续时运行  epson-print-card step --job 作业目录 --queue %s --execute --tray-loaded（装好盘后）' % name)
 
 
 def parser():
@@ -746,7 +826,7 @@ def parser():
     sh=sub.add_parser('sheet');sh.add_argument('--front-dir',required=True);sh.add_argument('--output',required=True);sh.add_argument('--queue')
     sh.add_argument('--execute',action='store_true');sh.add_argument('--columns',type=int);sh.add_argument('--dpi',type=int,choices=(150,300,600),default=300)
     sh.add_argument('--scale',type=float,default=1.0);sh.add_argument('--rotate',type=int,choices=(0,90,180,270),default=0);sh.set_defaults(func=sheet)
-    q=sub.add_parser('queue');q.add_argument('--name');q.set_defaults(func=queue_cmd)
+    q=sub.add_parser('queue');q.add_argument('name',nargs='?');q.add_argument('--job');q.set_defaults(func=queue_cmd)
     return p
 
 

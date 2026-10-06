@@ -264,6 +264,78 @@ class CardJob(unittest.TestCase):
         out=capture(confirm_dry=True,queue=None)
         self.assertIn('作业结束',out)                                                     # 全部完成
 
+    def test_queue_list_switch_and_job_update(self):
+        import io
+        from contextlib import redirect_stdout
+        def fake(argv):
+            if argv[0]=='lpstat' and '-p' in argv and '-v' not in argv and len(argv)==2:
+                return SimpleNamespace(stdout='printer EPSON_L8058 is idle. enabled since x\nprinter OTHER is idle. enabled since x\n')
+            if argv[0]=='lpstat' and '-v' in argv:
+                return SimpleNamespace(stdout='device for EPSON_L8058: epsonremote://x\ndevice for OTHER: epsonremote://y\n')
+            if argv[0]=='lpoptions':
+                return SimpleNamespace(stdout='EPIJ_PSrc/Page Setup: *2 3 25\n')
+            if argv[0]=='lp':
+                return SimpleNamespace(stdout='request id is EPSON_L8058-9 (1 file(s))\n')
+            return SimpleNamespace(stdout='')
+        with patch.object(epc,'checked_run',side_effect=fake):
+            buf=io.StringIO()
+            with redirect_stdout(buf): epc.queue_cmd(argparse.Namespace(name=None,job=None))
+            out=buf.getvalue()
+            self.assertIn('EPSON_L8058',out); self.assertIn('支持',out); self.assertIn('下一步',out)
+        # OTHER 未做 lpoptions 区分，改用独立 mock 验证拒绝路径
+        def fake2(argv):
+            if argv[0]=='lpstat' and len(argv)==2:
+                return SimpleNamespace(stdout='printer NOGOOD is idle. enabled since x\n')
+            if argv[0]=='lpstat':
+                return SimpleNamespace(stdout='device for NOGOOD: ipp://z\n')
+            if argv[0]=='lpoptions':
+                return SimpleNamespace(stdout='EPIJ_PSrc/Page Setup: *2 3\n')
+            return SimpleNamespace(stdout='')
+        with patch.object(epc,'checked_run',side_effect=fake2):
+            with self.assertRaisesRegex(ValueError,'不支持卡托盘'):
+                epc.queue_cmd(argparse.Namespace(name='NOGOOD',job=None))
+        # 正常切换：活动 profile 更新 + 作业 manifest 联动 + 审计事件 + 提示
+        self.profile.update(transport_verified=True,production_verified=True,verification_evidence=['mock'])
+        self.build(3)
+        folder=self.base/'job'
+        with patch.object(epc,'checked_run',side_effect=fake):
+            buf=io.StringIO()
+            with redirect_stdout(buf): epc.queue_cmd(argparse.Namespace(name='EPSON_L8058',job=str(folder)))
+        out=buf.getvalue()
+        self.assertIn('queue_switched',out); self.assertIn('下一步',out)
+        self.assertEqual(epc.active_profile()['queue_name'],'EPSON_L8058')
+        m=epc.read(folder/'manifest.json')
+        self.assertEqual(m['profile']['queue_name'],'EPSON_L8058')
+        self.assertEqual(m['profile']['cups_options'],{'EPIJ_PSrc':'25','EPIJ_Size':'1'})
+        state=epc.read(folder/'state.json')
+        self.assertEqual(state['events'][-1]['type'],'queue_switched')
+        self.assertEqual(state['manifest_sha256'],epc.digest(folder/'manifest.json'))
+        # 换队列后 step 校验通过（manifest 校验和已刷新）
+        manifest_path=folder/'manifest.json'
+        m=epc.read(manifest_path); m['profile'].update(transport_verified=True,production_verified=True,verification_evidence=['mock'])
+        epc.write(manifest_path,m)
+        state=epc.read(folder/'state.json'); state['manifest_sha256']=epc.digest(manifest_path); epc.write(folder/'state.json',state)
+        with patch.object(epc,'checked_run',side_effect=fake):
+            buf=io.StringIO()
+            with redirect_stdout(buf): epc.step(self.step_args(queue='EPSON_L8058',execute=True,tray_loaded=True))
+        self.assertIn('Submitted',buf.getvalue())
+
+    def test_queue_switch_refused_mid_submission(self):
+        self.build(3)
+        folder=self.base/'job'; state=epc.read(folder/'state.json')
+        state['events'].append({'index':0,'status':'submitted'}); epc.write(folder/'state.json',state)
+        def fake(argv):
+            if argv[0]=='lpstat' and len(argv)==2:
+                return SimpleNamespace(stdout='printer EPSON_L8058 is idle. enabled since x\n')
+            if argv[0]=='lpstat':
+                return SimpleNamespace(stdout='device for EPSON_L8058: epsonremote://x\n')
+            if argv[0]=='lpoptions':
+                return SimpleNamespace(stdout='EPIJ_PSrc/Page Setup: *2 3 25\n')
+            return SimpleNamespace(stdout='')
+        with patch.object(epc,'checked_run',side_effect=fake):
+            with self.assertRaisesRegex(ValueError,'先 --confirm-output'):
+                epc.queue_cmd(argparse.Namespace(name='EPSON_L8058',job=str(folder)))
+
     def test_cli_end_to_end_prepare_and_step_preview(self):
         for extra in sorted(self.fronts.iterdir())[3:]:
             (self.fronts/extra.name).unlink()

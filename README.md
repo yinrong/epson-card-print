@@ -14,3 +14,7 @@
 [固定目标与执行记录](PLAN.md) · [原话出处](10-原始需求/README.md) · [核心需求](15-核心需求/需求基线.md) · [验收清单](50-验收清单/README.md) · [epson-print-card 证卡程序](skills/epson-print-card/SKILL.md)（源码；已装 `~/.zcode/skills/`、`~/.codex/skills/`，PATH 命令 `epson-print-card`） · [print-preflight 打印预检](skills/print-preflight/SKILL.md)
 
 已有研究：[多卡托架规划](/Users/derek.yin/.claude/delivered-results/epson-l8058/多卡托架规划/latest/L8058多卡托架规划.md)。四卡与十卡尺寸均为条件算例，最大卡数由实测确定。当前目录是本地任务目录；本轮不提交打印作业。
+
+## epson-print-card 命令速查
+
+看下一步（自动提示）：`epson-print-card step --job 作业目录`；换队列：`epson-print-card queue`（列表）／`queue 队列名 --job 作业目录`（切换）；完整速查表见 [SKILL.md](skills/epson-print-card/SKILL.md#命令速查我想跑这条)。

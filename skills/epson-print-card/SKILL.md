@@ -18,6 +18,21 @@ epson-print-card step --job /new/job          # 队列首次会引导选一次�
 
 输入：`--front-dir` 目录内每张图片是一张卡的正面（卡号＝去扩展名文件名，按文件名排序，png/jpg/jpeg/tif/bmp/webp）；`--back-img` 是全部卡共用的背面图。末批不满 10 张时空槽留白。
 
+## 命令速查（我想…→跑这条）
+
+| 我想… | 命令 |
+|---|---|
+| 看下一步干什么（忘了随时跑，会自动提示） | `epson-print-card step --job 作业目录` |
+| 开始一批证卡作业 | `epson-print-card prepare --front-dir 正面图目录 --back-img 背面图 --group 2x3 --output 作业目录` |
+| 提交当前这一盘（装好盘后） | `epson-print-card step --job 作业目录 --queue 队列 --execute --tray-loaded` |
+| 确认这一盘已出盘 | `epson-print-card step --job 作业目录 --confirm-output` |
+| 油墨干燥完成放行 | `epson-print-card step --job 作业目录 --confirm-dry` |
+| 看有哪些队列／谁在线／谁支持卡托盘 | `epson-print-card queue` |
+| 换打印队列（连同进行中的作业） | `epson-print-card queue 队列名 --job 作业目录` |
+| 打印机没反应排查 | `epson-print-card queue`（看在线列），仍不动再跑 probe_printer.py |
+| 校准坐标／恢复内建规格 | `epson-print-card calibrate --samples 点位.json` ／ `calibrate --reset` |
+| A4 拼版（0 间距） | `epson-print-card sheet --front-dir 目录 --queue 队列 [--scale 2] --output 输出目录 [--execute]` |
+
 ## 规格与坐标（内建，无参数）
 
 本目录 PVC 证卡只有一种规格：86×54 mm、原配双卡托架。卡槽页面坐标、安全边距等已内建在程序里（初值由 L8050 驱动静态资料推算）。实机校准结果存在 `~/.config/epson-print-card/profile.json`（环境变量 `EPSON_PRINT_CARD_CONFIG_DIR` 可重定向），存在即优先生效，不存在就用内建值——日常使用不需要管这个文件。
