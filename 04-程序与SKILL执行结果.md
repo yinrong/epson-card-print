@@ -6,7 +6,7 @@
 > 本文件下方记录的托架 STL/SCAD 是搬家前的早期概念版本，当前有效版本见新项目。
 > 本项目继续只管喷墨打印那条链路（驱动、CUPS、`cardprint.py` 排版与坐标校准）。
 
-已安装 [epson-pvc-print SKILL](/Users/derek.yin/.codex/skills/epson-pvc-print/SKILL.md)。批量排版、逐盘正反面作业、仿射校准、托架参数生成及 STL 导出已实现；L8058 实机输出尚未验证。
+已安装 [epson-pvc-print SKILL](/Users/derek.yin/.codex/skills/epson-pvc-print/SKILL.md) 和 [epson-card-front-print 正卡打印 SKILL](/Users/derek.yin/dev2/epson/skills/epson-card-front-print/SKILL.md)（仅正面、无翻卡；源码在本仓库，另装至 `~/.zcode/skills/` 与 `~/.codex/skills/`）。批量排版、逐盘正反面作业、仿射校准、托架参数生成及 STL 导出已实现；L8058 实机输出尚未验证。
 
 | 交付 | 当前证据 |
 |---|---|
@@ -49,6 +49,7 @@
 
 ## 文件
 
+- [正卡打印 SKILL（源码）](/Users/derek.yin/dev2/epson/skills/epson-card-front-print/SKILL.md)（[zcode 全局副本](/Users/derek.yin/.zcode/skills/epson-card-front-print/SKILL.md) · [codex 全局副本](/Users/derek.yin/.codex/skills/epson-card-front-print/SKILL.md)）：CSV 只需正面图，逐盘提交仅正面；2026-10-06 建，14 项测试通过，样卡 3 张生成 2 盘单面 PDF 已核
 - [SKILL](/Users/derek.yin/.codex/skills/epson-pvc-print/SKILL.md)
 - [可分发技能包](/Users/derek.yin/db/epson-l8058/implementation/epson-pvc-print.zip)
 - [示例装卡顺序](/Users/derek.yin/db/epson-l8058/implementation/demo-job/装卡顺序.html)
