@@ -261,7 +261,7 @@ class Sheet(unittest.TestCase):
             Image.new('RGB',(86,54),color).save(self.dir/f'{i:02d}.png')
 
     def args(self,**kw):
-        d=dict(front_dir=str(self.dir),output=str(self.base/'sheet-out'),queue=kw.pop('queue',None),execute=False,columns=kw.pop('columns',None),dpi=150)
+        d=dict(front_dir=str(self.dir),output=str(self.base/'sheet-out'),queue=kw.pop('queue',None),execute=False,columns=kw.pop('columns',None),dpi=150,scale=kw.pop('scale',1.0),rotate=kw.pop('rotate',0))
         d.update(kw);return argparse.Namespace(**d)
 
     def test_sheet_layout_matches_aspect(self):
@@ -273,8 +273,22 @@ class Sheet(unittest.TestCase):
         lay=epc.sheet_layout(6,86/54,columns=2)
         self.assertEqual((lay['columns'],lay['rows'],lay['pages']),(2,5,1))
 
+    def test_sheet_layout_scale_double(self):
+        lay=epc.sheet_layout(75,0.628,scale=2)
+        self.assertEqual((lay['columns'],lay['rows'],lay['capacity'],lay['pages']),(4,4,16,5))
+        self.assertAlmostEqual(lay['cell_mm'][0],210/9*2,places=6)
+        self.assertAlmostEqual(lay['cell_mm'][1],297/8*2,places=6)
+
+    def test_fitted_rotates_180(self):
+        im=Image.new('RGB',(80,40),'white')
+        im.paste('red',(0,0,40,20));im.paste('yellow',(40,20,80,40))
+        path=self.base/'half.png';im.save(path)
+        r=epc.fitted(path,(80,40),'contain',180)
+        self.assertEqual(r.getpixel((5,5)),(255,255,0))
+        self.assertEqual(r.getpixel((74,34)),(255,0,0))
+
     def test_sheet_cells_have_zero_gap(self):
-        c0=epc.sheet_cell(0,2,5);c1=epc.sheet_cell(1,2,5);c2=epc.sheet_cell(2,2,5)
+        c0=epc.sheet_cell(0,2,(50,60));c1=epc.sheet_cell(1,2,(50,60));c2=epc.sheet_cell(2,2,(50,60))
         self.assertAlmostEqual(c1[0],c0[0]+c0[2],places=9)
         self.assertAlmostEqual(c2[1],c0[1]+c0[3],places=9)
         self.assertAlmostEqual(c2[0],c0[0],places=9)
@@ -289,7 +303,7 @@ class Sheet(unittest.TestCase):
 
     def test_sheet_empty_dir_refused(self):
         empty=self.base/'empty';empty.mkdir()
-        with self.assertRaisesRegex(ValueError,'No images'):epc.sheet(argparse.Namespace(front_dir=str(empty),output=str(self.base/'x'),queue=None,execute=False,columns=None,dpi=150))
+        with self.assertRaisesRegex(ValueError,'No images'):epc.sheet(argparse.Namespace(front_dir=str(empty),output=str(self.base/'x'),queue=None,execute=False,columns=None,dpi=150,scale=1.0,rotate=0))
 
     def test_sheet_execute_submits_one_job(self):
         calls=[]

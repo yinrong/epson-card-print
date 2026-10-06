@@ -25,10 +25,10 @@ epson-print-card step --job /new/job --queue VERIFIED_EPSON_QUEUE
 把一个目录的所有图片拼成 A4、0 间距网格，整册一个多页 PDF 一次提交（普通纸，不走托盘流程）：
 
 ```bash
-epson-print-card sheet --front-dir {dir} --queue NAME [--columns N] [--execute] --output /new/dir
+epson-print-card sheet --front-dir {dir} --queue NAME [--columns N] [--scale 2] [--rotate 180] [--execute] --output /new/dir
 ```
 
-列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--queue` 给出即显示提交命令，`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）。
+列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--scale` 把自动网格的格子精确放大 N 倍（图片保持紧贴，多余页边留白）；`--rotate` 顺时针旋转图片 0/90/180/270。`--queue` 给出即显示提交命令，`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）；同批 2 倍放大 → 4 列×4 行、5 页。
 
 ## 作业推进（step）
 
