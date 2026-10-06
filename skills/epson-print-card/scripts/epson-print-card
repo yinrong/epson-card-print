@@ -425,6 +425,49 @@ def describe_event(ev, manifest):
     return f"batch {ev['batch']} ({batch['group']}) {ev['side']}"
 
 
+def placements_text(batch, side):
+    return '、'.join(f"{p['id']}→{p['slot']}" for p in batch['sides'][side]['placements'])
+
+
+def next_step_hint(folder, queue, manifest, state):
+    """全自动「下一步」提示：根据作业状态给出当前要做的事 + 可直接粘贴的下一条命令。"""
+    events = job_events(manifest)
+    idx = state['next_event']
+    step_cmd = f'epson-print-card step --job {folder}'
+    if idx >= len(events):
+        print('▶ 下一步：没有了——全部批次完成打印与干燥，作业结束。')
+        return
+    pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==idx else None
+    ev = events[idx]
+    if ev['type'] == 'side' and pending and pending.get('status') in ('submitted','submission_uncertain'):
+        print(f'▶ 下一步：等打印机出盘，检查本面实物没问题后运行（确认后才推进）\n  {step_cmd} --confirm-output\n  （打印机无动作先查它是否在线；本任务已提交不会自动重发）')
+        return
+    if ev['type'] == 'dry':
+        cmd = f'{step_cmd} --confirm-dry'
+        if ev['phase'] == 'backs':
+            print(f'▶ 下一步：第 {ev["group"]} 批正面已全部出盘确认。等油墨干燥，然后运行\n  {cmd}\n  干燥确认后翻卡装回本批各盘（左右翻面、按背面槽位，对照 {folder}/装卡顺序.html），从本批第 1 盘背面继续：{step_cmd} --queue {queue} --execute --tray-loaded')
+        else:
+            nxt = events[idx+1] if idx+1 < len(events) else None
+            after = ''
+            if nxt and nxt['type'] == 'side':
+                nb = manifest['batches'][nxt['batch']-1]
+                after = f'\n  干燥确认后换下一批卡、装第 {nb["number"]} 盘（{placements_text(nb,"front")}，正面）：{step_cmd} --queue {queue} --execute --tray-loaded'
+            print(f'▶ 下一步：第 {ev["group"]} 批背面已全部出盘确认。等油墨干燥，然后运行\n  {cmd}{after}')
+        return
+    batch = manifest['batches'][ev['batch']-1]
+    side = ev['side']
+    side_cn = '正面' if side == 'front' else '背面（翻卡装回）'
+    print(f'▶ 下一步：装第 {batch["number"]} 盘（{placements_text(batch,side)}，{side_cn}），装好后运行\n  {step_cmd} --queue {queue} --execute --tray-loaded')
+
+
+def stored_queue():
+    p = queue_store_path()
+    try:
+        return read(p).get('queue') if p.is_file() else None
+    except Exception:
+        return None
+
+
 def step(args):
     folder = Path(args.job).resolve()
     lock = folder/'.state.lock'
@@ -436,8 +479,10 @@ def step(args):
             raise ValueError('Manifest changed; create a new job')
         events = job_events(manifest)
         index = state['next_event']
+        hint_queue = args.queue or stored_queue() or 'QUEUE_NAME'
         if index >= len(events):
-            print('All groups printed and dried'); return 'All groups printed and dried'
+            print('All groups printed and dried'); next_step_hint(folder, hint_queue, manifest, state)
+            return 'All groups printed and dried'
         ev = events[index]
         pending = state['events'][-1] if state['events'] and state['events'][-1]['index']==index else None
         if ev['type'] == 'dry':
@@ -447,9 +492,11 @@ def step(args):
                 state['next_event'] += 1; write(folder/'state.json',state)
                 nxt = events[index+1] if index+1 < len(events) else None
                 print(f"Group {ev['group']} dried; next: {describe_event(nxt,manifest) if nxt else 'job complete'}")
+                next_step_hint(folder, hint_queue, manifest, state)
                 return
             print(json.dumps({'waiting':'drying','group':ev['group'],'before':ev['phase'],
                               'hint':'ink must dry before flipping or swapping cards; pass --confirm-dry to advance'},ensure_ascii=False))
+            next_step_hint(folder, hint_queue, manifest, state)
             return
         batch = manifest['batches'][ev['batch']-1]
         side = ev['side']
@@ -463,7 +510,8 @@ def step(args):
                 raise ValueError('No submitted side to confirm')
             pending['status']='operator_confirmed'; pending['confirmed_at']=dt.datetime.now().astimezone().isoformat()
             state['next_event'] += 1; write(folder/'state.json',state)
-            print(f'Confirmed batch {batch["number"]} {side}; use step again for the next tray')
+            print(f'Confirmed batch {batch["number"]} {side}')
+            next_step_hint(folder, hint_queue, manifest, state)
             return
         if pending:
             raise ValueError('Side already submitted or outcome uncertain; inspect printer/CUPS and confirm output. No automatic resend.')
@@ -472,6 +520,7 @@ def step(args):
         cmd = command(profile, queue, pdf)
         print(json.dumps({'batch':batch['number'],'group':batch['group'],'side':side,'queue':queue,'placements':spec['placements'],'argv':cmd,'execute':args.execute},ensure_ascii=False))
         if not args.execute:
+            next_step_hint(folder, queue, manifest, state)
             return
         if not args.tray_loaded:
             raise ValueError(f'--execute 只是允许投递，还差 --tray-loaded＝已把本盘装进打印机的人工确认。装好后运行：epson-print-card step --job {folder} --queue {queue} --execute --tray-loaded')
@@ -510,7 +559,8 @@ def step(args):
         match=re.search(r'request id is (\S+)',result.stdout)
         pending.update(status='submitted',cups_job_id=match.group(1) if match else None)
         write(folder/'state.json',state)
-        print(f'Submitted batch {batch["number"]} {side}; confirm physical output before advancing')
+        print(f'Submitted batch {batch["number"]} {side}')
+        next_step_hint(folder, queue, manifest, state)
 
 
 A4_MM = (210.0, 297.0)

@@ -233,6 +233,37 @@ class CardJob(unittest.TestCase):
         self.assertEqual(len(m['profile']['slots']),2)
         self.assertEqual(m['profile']['page_mm'],epc.DEFAULT_PROFILE['page_mm'])
 
+    def test_step_outputs_next_step_hints(self):
+        import io
+        from contextlib import redirect_stdout
+        self.profile.update(transport_verified=True,production_verified=True,
+                            queue_name='EPSON_TEST',tray_option='InputSlot',
+                            cups_options={'InputSlot':'CD'},verification_evidence=['mock fixture, not hardware evidence'])
+        self.build(3)
+        def fake(argv):
+            if argv[0]=='lpoptions':return SimpleNamespace(stdout='InputSlot/Source: Rear *CD\n')
+            if argv[0]=='lpstat':return SimpleNamespace(stdout='printer EPSON_TEST is idle. Epson L8058\n')
+            return SimpleNamespace(stdout='request id is EPSON_TEST-123 (1 file(s))\n')
+        def capture(**kw):
+            buf=io.StringIO()
+            with patch.object(epc,'checked_run',side_effect=fake):
+                with redirect_stdout(buf):epc.step(self.step_args(**kw))
+            return buf.getvalue()
+        self.assertIn('--execute --tray-loaded',capture())                              # 预览：装盘提示
+        self.assertIn('--confirm-output',capture(execute=True,tray_loaded=True))        # 提交后：等出盘
+        self.assertIn('装第 2 盘',capture(confirm_output=True,queue=None))               # 确认后：下一盘
+        capture(execute=True,tray_loaded=True)
+        out=capture(confirm_output=True,queue=None)
+        self.assertIn('--confirm-dry',out); self.assertIn('干燥',out)                    # 整面完成：干燥门
+        out=capture(confirm_dry=True,queue=None)
+        self.assertIn('翻卡',out)                                                        # 干燥放行：翻卡装回
+        capture(execute=True,tray_loaded=True)
+        capture(confirm_output=True,queue=None)
+        capture(execute=True,tray_loaded=True)
+        capture(confirm_output=True,queue=None)
+        out=capture(confirm_dry=True,queue=None)
+        self.assertIn('作业结束',out)                                                     # 全部完成
+
     def test_cli_end_to_end_prepare_and_step_preview(self):
         for extra in sorted(self.fronts.iterdir())[3:]:
             (self.fronts/extra.name).unlink()
@@ -247,9 +278,10 @@ class CardJob(unittest.TestCase):
         self.assertTrue((out/'装卡顺序.html').is_file())
         r=subprocess.run(run+['step','--job',str(out),'--queue','EPSON_TEST'],capture_output=True,text=True,env=env)
         self.assertEqual(r.returncode,0,r.stderr)
-        payload=json.loads(r.stdout)
+        payload=json.loads(r.stdout.splitlines()[0])
         self.assertEqual((payload['side'],payload['group']),('front',1))
         self.assertIn('batch-0001-front.pdf',payload['argv'][-1])
+        self.assertIn('--execute --tray-loaded',r.stdout)   # 全自动提示：给出下一步可粘贴命令
 
 
     def test_step_without_queue_uses_saved_choice(self):
