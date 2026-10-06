@@ -1,0 +1,1831 @@
+{
+  "schema": 2,
+  "mode": "card-group",
+  "group": {
+    "slots_per_tray": 2,
+    "trays_per_group": 3
+  },
+  "profile": {
+    "name": "L8058 stock two-slot @ EPSON_L8058 (card tray)",
+    "page_mm": [
+      209.9733333333,
+      296.9683333333
+    ],
+    "inset_mm": 3,
+    "slots": [
+      {
+        "id": "S1",
+        "x": 10.677,
+        "y": 38.739,
+        "w": 54,
+        "h": 86,
+        "rotation": 90
+      },
+      {
+        "id": "S2",
+        "x": 85.183,
+        "y": 38.739,
+        "w": 54,
+        "h": 86,
+        "rotation": 90
+      }
+    ],
+    "back_slot_map": [
+      "S1",
+      "S2"
+    ],
+    "back_rotation": 0,
+    "transforms": {
+      "front": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "back": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    "cups_options": {
+      "EPIJ_PSrc": "25",
+      "EPIJ_Size": "1"
+    },
+    "queue_name": "EPSON_L8058",
+    "tray_option": "EPIJ_PSrc",
+    "transport_verified": true,
+    "production_verified": true,
+    "verification_evidence": [
+      "transport: 2026-10-06 Derek 报告原配托架证卡打印成功；EPSON_L8058 队列为 Epson 官方驱动，PPD 选项 EPIJ_PSrc 25=Disc/ID Card Tray 已核实存在",
+      "production: 绑定由操作员 Derek 2026-10-06 指令开启；首个作业为验证单，逐盘 --confirm-output 确认实物后即成重复试印证据"
+    ],
+    "basis": "L8050 Mac 13.26 MediaID199 clipping rectangles interpreted at 360dpi; nominal 54x86 card centered in 56.02x87.98 clip. Page from 595.20x841.80 points. Neither L8058 page origin nor tray transport has been verified. These are calibration candidates, not known print coordinates.",
+    "physical_card_thickness_mm": 0.76,
+    "physical_card_evidence": "User reports successful printing on original tray with nominal 0.76 mm cards; does not verify this custom program."
+  },
+  "calibration": false,
+  "created_at": "2026-10-06T23:24:08.460466+08:00",
+  "cards": 76,
+  "back_image": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png",
+  "batches": [
+    {
+      "number": 1,
+      "group": 1,
+      "cards": [
+        {
+          "id": "001-2ccd305e235c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/001-2ccd305e235c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "002-c9873563b17a",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/002-c9873563b17a.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0001-front.pdf",
+          "sha256": "83663949d88eafeb6c2dcb75dbc3dc85889515fbe24e2ace1d5270806c6a74a6",
+          "placements": [
+            {
+              "id": "001-2ccd305e235c",
+              "slot": "S1"
+            },
+            {
+              "id": "002-c9873563b17a",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0001-back.pdf",
+          "sha256": "92c78050ce341fc92ba017aefe73b98ac558b0665adfbdaa84be64b5cae0db8f",
+          "placements": [
+            {
+              "id": "001-2ccd305e235c",
+              "slot": "S1"
+            },
+            {
+              "id": "002-c9873563b17a",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 2,
+      "group": 1,
+      "cards": [
+        {
+          "id": "003-7e2358d58410",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/003-7e2358d58410.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "004-422fefdfccfa",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/004-422fefdfccfa.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0002-front.pdf",
+          "sha256": "a47ceaa9eeb8d0d2c36419cb9746750e77a3e0c43712076efd53fde5fa7bb570",
+          "placements": [
+            {
+              "id": "003-7e2358d58410",
+              "slot": "S1"
+            },
+            {
+              "id": "004-422fefdfccfa",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0002-back.pdf",
+          "sha256": "c708a6018ce352bc3c1e547cacabfe11a6810b800801cf7499dcea3366bbb5d7",
+          "placements": [
+            {
+              "id": "003-7e2358d58410",
+              "slot": "S1"
+            },
+            {
+              "id": "004-422fefdfccfa",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 3,
+      "group": 1,
+      "cards": [
+        {
+          "id": "005-298e600416cb",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/005-298e600416cb.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "006-cc1901557abe",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/006-cc1901557abe.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0003-front.pdf",
+          "sha256": "df0b64eb99b7383a180b0a6a8d7ed9e7f85cd3affd4323830e5c9621f91b7e8d",
+          "placements": [
+            {
+              "id": "005-298e600416cb",
+              "slot": "S1"
+            },
+            {
+              "id": "006-cc1901557abe",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0003-back.pdf",
+          "sha256": "4fdda61f87e34711ea057fd826804bd38df3dfe8f84ee0cd0a1c1e56b38c3e94",
+          "placements": [
+            {
+              "id": "005-298e600416cb",
+              "slot": "S1"
+            },
+            {
+              "id": "006-cc1901557abe",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 4,
+      "group": 2,
+      "cards": [
+        {
+          "id": "007-98df95e4966a",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/007-98df95e4966a.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "008-a9ab68dad1e5",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/008-a9ab68dad1e5.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0004-front.pdf",
+          "sha256": "57b97a1a902fdffe7af7d00ee82a98a2f2138905e69b7eed1383266563cd9fe6",
+          "placements": [
+            {
+              "id": "007-98df95e4966a",
+              "slot": "S1"
+            },
+            {
+              "id": "008-a9ab68dad1e5",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0004-back.pdf",
+          "sha256": "20a722d1c51eefc44cf7ea991d8cbd44bcf36061ed0e1bfd68a235b71f8a7b0e",
+          "placements": [
+            {
+              "id": "007-98df95e4966a",
+              "slot": "S1"
+            },
+            {
+              "id": "008-a9ab68dad1e5",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 5,
+      "group": 2,
+      "cards": [
+        {
+          "id": "009-1e889b3b436a",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/009-1e889b3b436a.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "010-824f3d3c1428",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/010-824f3d3c1428.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0005-front.pdf",
+          "sha256": "372bf1e7a872340f09ce5dccbcee1ca2bca03337402f517780d4479724926d4e",
+          "placements": [
+            {
+              "id": "009-1e889b3b436a",
+              "slot": "S1"
+            },
+            {
+              "id": "010-824f3d3c1428",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0005-back.pdf",
+          "sha256": "5995eeafc47421b6c7a6b2623e7778d13c70b9dad11768bc4dda61fdbf1ba6bf",
+          "placements": [
+            {
+              "id": "009-1e889b3b436a",
+              "slot": "S1"
+            },
+            {
+              "id": "010-824f3d3c1428",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 6,
+      "group": 2,
+      "cards": [
+        {
+          "id": "011-Arecibo",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/011-Arecibo.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "012-VLA",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/012-VLA.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0006-front.pdf",
+          "sha256": "6f9f5da2459d9dd67e6bbb673960e81a814f0b128bcb8b741b61a606d0872539",
+          "placements": [
+            {
+              "id": "011-Arecibo",
+              "slot": "S1"
+            },
+            {
+              "id": "012-VLA",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0006-back.pdf",
+          "sha256": "b3dfb9cb51741c800d1f7471aa8e59dc56284f723880f14f3e5938d9d50de9d7",
+          "placements": [
+            {
+              "id": "011-Arecibo",
+              "slot": "S1"
+            },
+            {
+              "id": "012-VLA",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 7,
+      "group": 3,
+      "cards": [
+        {
+          "id": "013-485d031ca742",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/013-485d031ca742.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "014-8ea724168dc9",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/014-8ea724168dc9.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0007-front.pdf",
+          "sha256": "f06e5bf3d3d61fa5d8c5849a56174f1e8b248ab2d1bedef582180442748f3ca7",
+          "placements": [
+            {
+              "id": "013-485d031ca742",
+              "slot": "S1"
+            },
+            {
+              "id": "014-8ea724168dc9",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0007-back.pdf",
+          "sha256": "cc33003a3c6e54cc56bdf5fd5334f07821957c6cd6c766c838bbc5ab052c8fc1",
+          "placements": [
+            {
+              "id": "013-485d031ca742",
+              "slot": "S1"
+            },
+            {
+              "id": "014-8ea724168dc9",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 8,
+      "group": 3,
+      "cards": [
+        {
+          "id": "015-39A",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/015-39A.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "016-5186c2717aed",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/016-5186c2717aed.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0008-front.pdf",
+          "sha256": "5301d7947043def96c537ee028be99186565eb07229155c7d319ffa02d455647",
+          "placements": [
+            {
+              "id": "015-39A",
+              "slot": "S1"
+            },
+            {
+              "id": "016-5186c2717aed",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0008-back.pdf",
+          "sha256": "a6b5fea46b58fa2385401e9371ce0ef565cb916b3df06753c8d8a2798586bcfc",
+          "placements": [
+            {
+              "id": "015-39A",
+              "slot": "S1"
+            },
+            {
+              "id": "016-5186c2717aed",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 9,
+      "group": 3,
+      "cards": [
+        {
+          "id": "017-Party",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/017-Party.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "018-8ae6c9138f89",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/018-8ae6c9138f89.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0009-front.pdf",
+          "sha256": "47cfc285fe02a8c75da93a1549f232c3404a9e9d1d04bd221dfac695a5eafad2",
+          "placements": [
+            {
+              "id": "017-Party",
+              "slot": "S1"
+            },
+            {
+              "id": "018-8ae6c9138f89",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0009-back.pdf",
+          "sha256": "27617391b0627b72be899e65ef854662b75a39105d77883c701de9ff51b02524",
+          "placements": [
+            {
+              "id": "017-Party",
+              "slot": "S1"
+            },
+            {
+              "id": "018-8ae6c9138f89",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 10,
+      "group": 4,
+      "cards": [
+        {
+          "id": "019-8ae6c9138f89",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/019-8ae6c9138f89.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "020-3fe7768c8c5b",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/020-3fe7768c8c5b.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0010-front.pdf",
+          "sha256": "1cdafab63c2df3a197d577914a12c8860b46dbfe73d116498bab93d0e66b8db0",
+          "placements": [
+            {
+              "id": "019-8ae6c9138f89",
+              "slot": "S1"
+            },
+            {
+              "id": "020-3fe7768c8c5b",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0010-back.pdf",
+          "sha256": "6659c001e5d154383cf98f88b90f5931c7e849fa75df1c1203444a4c1e3a3de3",
+          "placements": [
+            {
+              "id": "019-8ae6c9138f89",
+              "slot": "S1"
+            },
+            {
+              "id": "020-3fe7768c8c5b",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 11,
+      "group": 4,
+      "cards": [
+        {
+          "id": "021-c8fd10f4d540",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/021-c8fd10f4d540.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "022-c8fd10f4d540",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/022-c8fd10f4d540.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0011-front.pdf",
+          "sha256": "fc53112d8abf20149ee914c9d5552d47666fb121fb065795c72261f89df58930",
+          "placements": [
+            {
+              "id": "021-c8fd10f4d540",
+              "slot": "S1"
+            },
+            {
+              "id": "022-c8fd10f4d540",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0011-back.pdf",
+          "sha256": "3aa7f51a977874d33a017b4902cae0c1993de6ceb4be32dc6a093d6a628dbbcc",
+          "placements": [
+            {
+              "id": "021-c8fd10f4d540",
+              "slot": "S1"
+            },
+            {
+              "id": "022-c8fd10f4d540",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 12,
+      "group": 4,
+      "cards": [
+        {
+          "id": "023-fe3745e19aec",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/023-fe3745e19aec.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "024-d13f41fb39be",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/024-d13f41fb39be.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0012-front.pdf",
+          "sha256": "70b51d655d7c1d8e478ec96a0121f25410ca94142a3360e6b48fb8f063f4eeb3",
+          "placements": [
+            {
+              "id": "023-fe3745e19aec",
+              "slot": "S1"
+            },
+            {
+              "id": "024-d13f41fb39be",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0012-back.pdf",
+          "sha256": "1689f15b9c97d0c927bc5e0081d4ffb5c650c1ae7158656eed0623a6b63b0738",
+          "placements": [
+            {
+              "id": "023-fe3745e19aec",
+              "slot": "S1"
+            },
+            {
+              "id": "024-d13f41fb39be",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 13,
+      "group": 5,
+      "cards": [
+        {
+          "id": "025-d13f41fb39be",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/025-d13f41fb39be.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "026-47f1d7db8a97",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/026-47f1d7db8a97.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0013-front.pdf",
+          "sha256": "6ad937683489632cc6f1d041aa11b1a3686bb33687e0d713425615795fe10b5e",
+          "placements": [
+            {
+              "id": "025-d13f41fb39be",
+              "slot": "S1"
+            },
+            {
+              "id": "026-47f1d7db8a97",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0013-back.pdf",
+          "sha256": "af2835f6af3b4456f82ac0a97aed7c7ab0dda2ce79d4b0db598c97e1bd0372ea",
+          "placements": [
+            {
+              "id": "025-d13f41fb39be",
+              "slot": "S1"
+            },
+            {
+              "id": "026-47f1d7db8a97",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 14,
+      "group": 5,
+      "cards": [
+        {
+          "id": "027-26e72a5a040f",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/027-26e72a5a040f.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "028-26e72a5a040f",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/028-26e72a5a040f.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0014-front.pdf",
+          "sha256": "babfc3f7000f76590a6438138eb9b3f9601ffb9883f9df515f1e5c00cc4e56bc",
+          "placements": [
+            {
+              "id": "027-26e72a5a040f",
+              "slot": "S1"
+            },
+            {
+              "id": "028-26e72a5a040f",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0014-back.pdf",
+          "sha256": "dd461a6f20f59d07e039414a06d0bb0e1d162ebabefbd4dc98996a42c143005f",
+          "placements": [
+            {
+              "id": "027-26e72a5a040f",
+              "slot": "S1"
+            },
+            {
+              "id": "028-26e72a5a040f",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 15,
+      "group": 5,
+      "cards": [
+        {
+          "id": "029-dc3f594dc915",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/029-dc3f594dc915.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "030-d9a9eb2bb5dc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/030-d9a9eb2bb5dc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0015-front.pdf",
+          "sha256": "1bfd906de13559aa88e5ed198b734bee8ac02e1f35e98238dcaf504cc78f32bd",
+          "placements": [
+            {
+              "id": "029-dc3f594dc915",
+              "slot": "S1"
+            },
+            {
+              "id": "030-d9a9eb2bb5dc",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0015-back.pdf",
+          "sha256": "a4e6fd8fb57516b0a8db4f5a4a2d9fd98f2ff3e66f6abab9c466f1b8b8300967",
+          "placements": [
+            {
+              "id": "029-dc3f594dc915",
+              "slot": "S1"
+            },
+            {
+              "id": "030-d9a9eb2bb5dc",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 16,
+      "group": 6,
+      "cards": [
+        {
+          "id": "031-d9a9eb2bb5dc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/031-d9a9eb2bb5dc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "032-d9a9eb2bb5dc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/032-d9a9eb2bb5dc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0016-front.pdf",
+          "sha256": "0549d90be89efd84b7312a7b921c79d1ec06c353ca50d6170dd3cabb46dde038",
+          "placements": [
+            {
+              "id": "031-d9a9eb2bb5dc",
+              "slot": "S1"
+            },
+            {
+              "id": "032-d9a9eb2bb5dc",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0016-back.pdf",
+          "sha256": "bff906b6f41a30a4ade7e5d922f4040ccb6d1cb29b4fa4beca247ad62603b4d2",
+          "placements": [
+            {
+              "id": "031-d9a9eb2bb5dc",
+              "slot": "S1"
+            },
+            {
+              "id": "032-d9a9eb2bb5dc",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 17,
+      "group": 6,
+      "cards": [
+        {
+          "id": "033-d9a9eb2bb5dc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/033-d9a9eb2bb5dc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "034-1cbc9bdec927",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/034-1cbc9bdec927.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0017-front.pdf",
+          "sha256": "d65a0eb3d52536ae56444f643e1bb2f01d691fbf2ffaeac19af208c85eb151f9",
+          "placements": [
+            {
+              "id": "033-d9a9eb2bb5dc",
+              "slot": "S1"
+            },
+            {
+              "id": "034-1cbc9bdec927",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0017-back.pdf",
+          "sha256": "aa387d6df9165a3594685df41ed52eb97ee2453e224e021387476f4bf4493ae9",
+          "placements": [
+            {
+              "id": "033-d9a9eb2bb5dc",
+              "slot": "S1"
+            },
+            {
+              "id": "034-1cbc9bdec927",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 18,
+      "group": 6,
+      "cards": [
+        {
+          "id": "035-b9f8866c24a3",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/035-b9f8866c24a3.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "036-b9f8866c24a3",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/036-b9f8866c24a3.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0018-front.pdf",
+          "sha256": "efdc532fd7219be0550059ee45de6b99388e2221bb3b1a56d7b075ae29304d95",
+          "placements": [
+            {
+              "id": "035-b9f8866c24a3",
+              "slot": "S1"
+            },
+            {
+              "id": "036-b9f8866c24a3",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0018-back.pdf",
+          "sha256": "0d740b9cf5c04f6b942e882408b50c6b7460ef592a336cb97769da676c8f8474",
+          "placements": [
+            {
+              "id": "035-b9f8866c24a3",
+              "slot": "S1"
+            },
+            {
+              "id": "036-b9f8866c24a3",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 19,
+      "group": 7,
+      "cards": [
+        {
+          "id": "037-8159b4088e09",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/037-8159b4088e09.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "038-52afc06a6fdc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/038-52afc06a6fdc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0019-front.pdf",
+          "sha256": "d85e6743ec717f534717dfe1e29f374fdbdfb07c7cce1010b7e260e949883cd1",
+          "placements": [
+            {
+              "id": "037-8159b4088e09",
+              "slot": "S1"
+            },
+            {
+              "id": "038-52afc06a6fdc",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0019-back.pdf",
+          "sha256": "707b97287c181d5684e65fbec79ed344cfcbd1fa14cc538844dcf51e9f9d7773",
+          "placements": [
+            {
+              "id": "037-8159b4088e09",
+              "slot": "S1"
+            },
+            {
+              "id": "038-52afc06a6fdc",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 20,
+      "group": 7,
+      "cards": [
+        {
+          "id": "039-52afc06a6fdc",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/039-52afc06a6fdc.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "040-919ddbbd91c0",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/040-919ddbbd91c0.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0020-front.pdf",
+          "sha256": "99b7d0137aefe62a724a4526c7bd2d569c97f12a1ab419227cf835d9a3a4164e",
+          "placements": [
+            {
+              "id": "039-52afc06a6fdc",
+              "slot": "S1"
+            },
+            {
+              "id": "040-919ddbbd91c0",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0020-back.pdf",
+          "sha256": "8ecc08f5b1fc1b782bfc0cbbfaede6486865ab300ae378322f1c19e036a1447d",
+          "placements": [
+            {
+              "id": "039-52afc06a6fdc",
+              "slot": "S1"
+            },
+            {
+              "id": "040-919ddbbd91c0",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 21,
+      "group": 7,
+      "cards": [
+        {
+          "id": "041-919ddbbd91c0",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/041-919ddbbd91c0.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "042-f5bdd96edf6b",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/042-f5bdd96edf6b.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0021-front.pdf",
+          "sha256": "cf695f5d7e4801af903491d958c54402b9db2057e300402085fca79492457b0e",
+          "placements": [
+            {
+              "id": "041-919ddbbd91c0",
+              "slot": "S1"
+            },
+            {
+              "id": "042-f5bdd96edf6b",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0021-back.pdf",
+          "sha256": "36ea045ae190286cd63f6c8fe5c250466bd0972a28ba2a69aa2c12ce20b33646",
+          "placements": [
+            {
+              "id": "041-919ddbbd91c0",
+              "slot": "S1"
+            },
+            {
+              "id": "042-f5bdd96edf6b",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 22,
+      "group": 8,
+      "cards": [
+        {
+          "id": "043-f5bdd96edf6b",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/043-f5bdd96edf6b.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "044-f5bdd96edf6b",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/044-f5bdd96edf6b.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0022-front.pdf",
+          "sha256": "40720fd3a7475109581d8907d9d3124dc3f9f985c63c527c51087f312cb823c5",
+          "placements": [
+            {
+              "id": "043-f5bdd96edf6b",
+              "slot": "S1"
+            },
+            {
+              "id": "044-f5bdd96edf6b",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0022-back.pdf",
+          "sha256": "0f34cbf0898913e0043679e50c1c64ab0da5492f72d43285b18e352546f90437",
+          "placements": [
+            {
+              "id": "043-f5bdd96edf6b",
+              "slot": "S1"
+            },
+            {
+              "id": "044-f5bdd96edf6b",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 23,
+      "group": 8,
+      "cards": [
+        {
+          "id": "045-bddcc6256727",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/045-bddcc6256727.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "046-03219be0984d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/046-03219be0984d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0023-front.pdf",
+          "sha256": "26fe87c5983dd3e8911bb1de7271d2af84b42f87c07dacdcc9545b860e101e21",
+          "placements": [
+            {
+              "id": "045-bddcc6256727",
+              "slot": "S1"
+            },
+            {
+              "id": "046-03219be0984d",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0023-back.pdf",
+          "sha256": "8a89f9fde131a7bc6aade525a888dfd29d3ab6e2eb354fd4b7c27781856923be",
+          "placements": [
+            {
+              "id": "045-bddcc6256727",
+              "slot": "S1"
+            },
+            {
+              "id": "046-03219be0984d",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 24,
+      "group": 8,
+      "cards": [
+        {
+          "id": "047-03219be0984d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/047-03219be0984d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "048-03219be0984d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/048-03219be0984d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0024-front.pdf",
+          "sha256": "4063c387d97e54de35f04f396aaf9027ad604ec43a56f1813a578705c1679674",
+          "placements": [
+            {
+              "id": "047-03219be0984d",
+              "slot": "S1"
+            },
+            {
+              "id": "048-03219be0984d",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0024-back.pdf",
+          "sha256": "4718642f302a6ad837a00ecff9b8c8aef209953cad779017b3f2d17e3ee1f09d",
+          "placements": [
+            {
+              "id": "047-03219be0984d",
+              "slot": "S1"
+            },
+            {
+              "id": "048-03219be0984d",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 25,
+      "group": 9,
+      "cards": [
+        {
+          "id": "049-03219be0984d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/049-03219be0984d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "050-aa8bba8f0fb1",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/050-aa8bba8f0fb1.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0025-front.pdf",
+          "sha256": "5b70f9066b63d17f32880310d2d695d05e7f4caa9c811e9e7db6661515e2d58d",
+          "placements": [
+            {
+              "id": "049-03219be0984d",
+              "slot": "S1"
+            },
+            {
+              "id": "050-aa8bba8f0fb1",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0025-back.pdf",
+          "sha256": "2d10c85f25269e9884ec2b7608b0dd33bec1767bf97b33236a693e10d1d4eb98",
+          "placements": [
+            {
+              "id": "049-03219be0984d",
+              "slot": "S1"
+            },
+            {
+              "id": "050-aa8bba8f0fb1",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 26,
+      "group": 9,
+      "cards": [
+        {
+          "id": "051-aa8bba8f0fb1",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/051-aa8bba8f0fb1.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "052-f4a7c0e3503a",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/052-f4a7c0e3503a.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0026-front.pdf",
+          "sha256": "e747b5dd5b178779df2a988542bd831e7892cf11aae6ad3ecce63b188f052e9e",
+          "placements": [
+            {
+              "id": "051-aa8bba8f0fb1",
+              "slot": "S1"
+            },
+            {
+              "id": "052-f4a7c0e3503a",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0026-back.pdf",
+          "sha256": "e8536756da52292febc6be2617350701913290fb881498123e40b59d1e24f95c",
+          "placements": [
+            {
+              "id": "051-aa8bba8f0fb1",
+              "slot": "S1"
+            },
+            {
+              "id": "052-f4a7c0e3503a",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 27,
+      "group": 9,
+      "cards": [
+        {
+          "id": "053-f4a7c0e3503a",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/053-f4a7c0e3503a.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "054-e45161f0fec9",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/054-e45161f0fec9.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0027-front.pdf",
+          "sha256": "39d73f2d1a893af525db60145b065c01ac1a09cc1da3bad24626a6515fd7aa35",
+          "placements": [
+            {
+              "id": "053-f4a7c0e3503a",
+              "slot": "S1"
+            },
+            {
+              "id": "054-e45161f0fec9",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0027-back.pdf",
+          "sha256": "af187c651c35b900a3ce5efc0130089bd589a8da5ce3a61dbe0624bd89216cf0",
+          "placements": [
+            {
+              "id": "053-f4a7c0e3503a",
+              "slot": "S1"
+            },
+            {
+              "id": "054-e45161f0fec9",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 28,
+      "group": 10,
+      "cards": [
+        {
+          "id": "055-e45161f0fec9",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/055-e45161f0fec9.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "056-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/056-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0028-front.pdf",
+          "sha256": "c38fb21aff322d1d9f0d5f5aaa3074fe812d640674a58837983b46ae4ccab4e8",
+          "placements": [
+            {
+              "id": "055-e45161f0fec9",
+              "slot": "S1"
+            },
+            {
+              "id": "056-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0028-back.pdf",
+          "sha256": "5ba1ad5f621621494a98a82d5a7c22f65ec39ca7b9da0dd8e1d2512aab5c3388",
+          "placements": [
+            {
+              "id": "055-e45161f0fec9",
+              "slot": "S1"
+            },
+            {
+              "id": "056-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 29,
+      "group": 10,
+      "cards": [
+        {
+          "id": "057-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/057-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "058-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/058-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0029-front.pdf",
+          "sha256": "49deb4354977521ac45c6b6929bf45d0b4793746325916761d3c1e5b56e88980",
+          "placements": [
+            {
+              "id": "057-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "058-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0029-back.pdf",
+          "sha256": "d96c03ce5c048b8bf9b1b3381d7ff92856a60c7d7dd851aeab11d957a2f26017",
+          "placements": [
+            {
+              "id": "057-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "058-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 30,
+      "group": 10,
+      "cards": [
+        {
+          "id": "059-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/059-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "060-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/060-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0030-front.pdf",
+          "sha256": "24db338038efadf61e2b8cf92db7f42f53f87cf8f69bce25e95ef429aace458a",
+          "placements": [
+            {
+              "id": "059-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "060-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0030-back.pdf",
+          "sha256": "273ea268ee31ed65c208b7a1283903f7023857f1c1fba10262a7a7d3c846ecc4",
+          "placements": [
+            {
+              "id": "059-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "060-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 31,
+      "group": 11,
+      "cards": [
+        {
+          "id": "061-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/061-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "062-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/062-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0031-front.pdf",
+          "sha256": "b6057cdcd97de15d8c614a708faeabb1dc6dd06836a5dc97a02a063a4b37a9c8",
+          "placements": [
+            {
+              "id": "061-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "062-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0031-back.pdf",
+          "sha256": "135b9dd2e4381a31dcf5b4dbe25b0f48a819562efa4ff95b1dd1e15eb484d213",
+          "placements": [
+            {
+              "id": "061-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "062-db7281a3b577",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 32,
+      "group": 11,
+      "cards": [
+        {
+          "id": "063-db7281a3b577",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/063-db7281a3b577.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "064-1111c89cbb6c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/064-1111c89cbb6c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0032-front.pdf",
+          "sha256": "3a879da6927f644423a0f23350aa14f7280be37f7119dd143306ef66a457f3de",
+          "placements": [
+            {
+              "id": "063-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "064-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0032-back.pdf",
+          "sha256": "449b25844f3b6c0a1cc3fb80d4d8a419c0dd7f4ad564b2fe044f8b8f54c99b34",
+          "placements": [
+            {
+              "id": "063-db7281a3b577",
+              "slot": "S1"
+            },
+            {
+              "id": "064-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 33,
+      "group": 11,
+      "cards": [
+        {
+          "id": "065-1111c89cbb6c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/065-1111c89cbb6c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "066-1111c89cbb6c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/066-1111c89cbb6c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0033-front.pdf",
+          "sha256": "2b910ef1cc238504637197bb6f09c9b9e611d869966bbc302892a6bd58737c30",
+          "placements": [
+            {
+              "id": "065-1111c89cbb6c",
+              "slot": "S1"
+            },
+            {
+              "id": "066-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0033-back.pdf",
+          "sha256": "0a269d27470ced9a483cd3e50ff616fb25807657b5f524d4f598fa5434dc1206",
+          "placements": [
+            {
+              "id": "065-1111c89cbb6c",
+              "slot": "S1"
+            },
+            {
+              "id": "066-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 34,
+      "group": 12,
+      "cards": [
+        {
+          "id": "067-1111c89cbb6c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/067-1111c89cbb6c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "068-1111c89cbb6c",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/068-1111c89cbb6c.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0034-front.pdf",
+          "sha256": "9196e8593d21724e4661914228e77b60432e6642f7373fbbfadebabadd59dbba",
+          "placements": [
+            {
+              "id": "067-1111c89cbb6c",
+              "slot": "S1"
+            },
+            {
+              "id": "068-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0034-back.pdf",
+          "sha256": "796e3e611a79c82231163c616c162b70e0f8d1825098276cd58d31c5a87e7e48",
+          "placements": [
+            {
+              "id": "067-1111c89cbb6c",
+              "slot": "S1"
+            },
+            {
+              "id": "068-1111c89cbb6c",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 35,
+      "group": 12,
+      "cards": [
+        {
+          "id": "069-57d87b243346",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/069-57d87b243346.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "070-57d87b243346",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/070-57d87b243346.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0035-front.pdf",
+          "sha256": "dc18476661f38230c645655f97b2aec67bb474caf2d0c3757c39dc634e130c35",
+          "placements": [
+            {
+              "id": "069-57d87b243346",
+              "slot": "S1"
+            },
+            {
+              "id": "070-57d87b243346",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0035-back.pdf",
+          "sha256": "53ee4b3cebd6ef7826fd1db45c3b30bcf5e201d6e08a1b6457bf880a63ca92e1",
+          "placements": [
+            {
+              "id": "069-57d87b243346",
+              "slot": "S1"
+            },
+            {
+              "id": "070-57d87b243346",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 36,
+      "group": 12,
+      "cards": [
+        {
+          "id": "071-57d87b243346",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/071-57d87b243346.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "072-b9cd58248184",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/072-b9cd58248184.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0036-front.pdf",
+          "sha256": "9a170ec1bc0023cc7610b96568096973f4bc972dc7ecf266371d48ad90c87787",
+          "placements": [
+            {
+              "id": "071-57d87b243346",
+              "slot": "S1"
+            },
+            {
+              "id": "072-b9cd58248184",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0036-back.pdf",
+          "sha256": "355fd16a50cc5ed97215ac5a94e358c0e100ef77c3fe22818ef3841a8a7e43e4",
+          "placements": [
+            {
+              "id": "071-57d87b243346",
+              "slot": "S1"
+            },
+            {
+              "id": "072-b9cd58248184",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 37,
+      "group": 13,
+      "cards": [
+        {
+          "id": "073-79713c2e3cb1",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/073-79713c2e3cb1.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "074-79713c2e3cb1",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/074-79713c2e3cb1.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0037-front.pdf",
+          "sha256": "2d9b8eb0628d63bb092610d68a1197f4819072472406a4ea32be41cfd7fbc494",
+          "placements": [
+            {
+              "id": "073-79713c2e3cb1",
+              "slot": "S1"
+            },
+            {
+              "id": "074-79713c2e3cb1",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0037-back.pdf",
+          "sha256": "f252810db649d831a7edc3ea5d27e1e0acc783920fc3e5b3807c60c45e3c5c4f",
+          "placements": [
+            {
+              "id": "073-79713c2e3cb1",
+              "slot": "S1"
+            },
+            {
+              "id": "074-79713c2e3cb1",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 38,
+      "group": 13,
+      "cards": [
+        {
+          "id": "075-4606102ef89d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/075-4606102ef89d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        },
+        {
+          "id": "076-4606102ef89d",
+          "front": "/Users/derek.yin/db/3d/main/rich-v4/04-当前结果/79-行动卡牌/行动卡牌-送印画布-正面/076-4606102ef89d.png",
+          "back": "/Users/derek.yin/db/3d/main/rich-v4/assets/exports/行动卡牌/背面.png"
+        }
+      ],
+      "sides": {
+        "front": {
+          "file": "batch-0038-front.pdf",
+          "sha256": "76176026770437c03a84a49b8a97eac25589e518daa3af32f306d96e10e071ff",
+          "placements": [
+            {
+              "id": "075-4606102ef89d",
+              "slot": "S1"
+            },
+            {
+              "id": "076-4606102ef89d",
+              "slot": "S2"
+            }
+          ]
+        },
+        "back": {
+          "file": "batch-0038-back.pdf",
+          "sha256": "73031754cfc4ed441c3ad3677e5f666bb18661b068fe7bdbfe0625fd9e53df16",
+          "placements": [
+            {
+              "id": "075-4606102ef89d",
+              "slot": "S1"
+            },
+            {
+              "id": "076-4606102ef89d",
+              "slot": "S2"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "runtime": {
+    "python": "3.12.14",
+    "Pillow": "12.3.0",
+    "reportlab": "5.0.1"
+  }
+}

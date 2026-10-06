@@ -468,24 +468,25 @@ def step(args):
         if pending:
             raise ValueError('Side already submitted or outcome uncertain; inspect printer/CUPS and confirm output. No automatic resend.')
         profile = validate(manifest['profile'])
-        cmd = command(profile,args.queue,pdf)
-        print(json.dumps({'batch':batch['number'],'group':batch['group'],'side':side,'placements':spec['placements'],'argv':cmd,'execute':args.execute},ensure_ascii=False))
+        queue = args.queue or choose_queue()
+        cmd = command(profile, queue, pdf)
+        print(json.dumps({'batch':batch['number'],'group':batch['group'],'side':side,'queue':queue,'placements':spec['placements'],'argv':cmd,'execute':args.execute},ensure_ascii=False))
         if not args.execute:
             return
         if not args.tray_loaded:
-            raise ValueError('Load the specified tray side, then pass --tray-loaded')
+            raise ValueError(f'--execute 只是允许投递，还差 --tray-loaded＝已把本盘装进打印机的人工确认。装好后运行：epson-print-card step --job {folder} --queue {queue} --execute --tray-loaded')
         if not profile.get('transport_verified'):
             raise ValueError('Tray transport/options not verified for this profile')
         if not manifest.get('calibration') and not profile.get('production_verified'):
             raise ValueError('Production profile needs repeat-print evidence; calibration jobs remain available')
         if not profile.get('verification_evidence'):
             raise ValueError('Profile must record transport/print evidence')
-        if profile.get('queue_name') != args.queue:
+        if profile.get('queue_name') != queue:
             raise ValueError('Profile must be calibrated for this exact queue_name')
         tray_option = profile.get('tray_option')
         if not tray_option or tray_option not in profile.get('cups_options',{}):
             raise ValueError('Profile must select its verified tray source option')
-        capabilities = checked_run(['lpoptions','-p',args.queue,'-l']).stdout
+        capabilities = checked_run(['lpoptions','-p',queue,'-l']).stdout
         choices = {}
         for line in capabilities.splitlines():
             if ':' in line:
@@ -494,11 +495,11 @@ def step(args):
         for key,val in profile['cups_options'].items():
             if key in choices and str(val) not in choices[key]:
                 raise ValueError(f'Queue does not advertise selected option {key}={val}')
-        info = checked_run(['lpstat','-p',args.queue,'-l']).stdout
+        info = checked_run(['lpstat','-p',queue,'-l']).stdout
         if 'disabled' in info.lower():
             raise ValueError('Target queue disabled')
-        model = checked_run(['lpstat','-l','-p',args.queue]).stdout
-        ppd=Path('/etc/cups/ppd')/(args.queue+'.ppd')
+        model = checked_run(['lpstat','-l','-p',queue]).stdout
+        ppd=Path('/etc/cups/ppd')/(queue+'.ppd')
         if ppd.is_file():
             model += ppd.read_text(errors='replace')
         if not re.search(r'epson|L805[08]',model,re.I):
@@ -605,16 +606,83 @@ def sheet(args):
     make_sheet_pdf(pdf, files, layout, A4_MM, args.dpi, args.rotate)
     info = {'output': str(pdf), 'images': len(files), 'page_mm': list(A4_MM), 'spacing_mm': 0,
             'scale': args.scale, 'rotate': args.rotate, **layout}
-    if args.queue:
-        cmd = command({'cups_options': {'EPIJ_Size': '1'}}, args.queue, pdf)
+    resolved = args.queue
+    if not resolved and args.execute:
+        resolved = choose_queue()
+    if resolved:
+        cmd = command({'cups_options': {'EPIJ_Size': '1'}}, resolved, pdf)
+        info['queue'] = resolved
         info['argv'] = cmd
         info['execute'] = args.execute
         if args.execute:
-            verify_printer(args.queue)
+            verify_printer(resolved)
             result = checked_run(cmd)
             m = re.search(r'request id is (\S+)', result.stdout)
             info['cups_job_id'] = m.group(1) if m else None
     print(json.dumps(info, ensure_ascii=False))
+
+
+def queue_store_path():
+    base = os.environ.get('EPSON_PRINT_CARD_CONFIG_DIR', str(Path.home()/'.config'/'epson-print-card'))
+    return Path(base)/'queue.json'
+
+
+def list_printers():
+    """本地 CUPS 队列清单：名称、是否启用、设备通道（socket=局域网直连，epsonremote=云中继）。"""
+    printers = {}
+    for line in checked_run(['lpstat','-p']).stdout.splitlines():
+        m = re.match(r'printer (\S+) is (idle|processing|stopped)\.?\s+(enabled|disabled)', line.strip())
+        if m:
+            printers[m[1]] = {'name': m[1], 'state': m[2], 'enabled': m[3] == 'enabled', 'device': ''}
+    for line in checked_run(['lpstat','-v']).stdout.splitlines():
+        m = re.match(r'device for (\S+): (\S+)', line.strip())
+        if m and m[1] in printers:
+            printers[m[1]]['device'] = m[2]
+    return list(printers.values())
+
+
+def choose_queue(explicit=None):
+    """队列一次性选择：显式给出或交互选一次即存档，之后不再要人输入长队列名。"""
+    store = queue_store_path()
+    if explicit:
+        names = {p['name'] for p in list_printers()}
+        if explicit not in names:
+            raise ValueError(f'No local printer named {explicit}; available: {sorted(names) or "none"}')
+        store.parent.mkdir(parents=True, exist_ok=True)
+        write(store, {'queue': explicit, 'chosen_at': dt.datetime.now().astimezone().isoformat(), 'how': 'explicit'})
+        return explicit
+    if store.is_file():
+        saved = read(store).get('queue')
+        if saved and any(p['name'] == saved for p in list_printers()):
+            return saved
+    printers = list_printers()
+    if not printers:
+        raise ValueError('No local printers found; configure the printer in CUPS first')
+    def is_epson(p):
+        return bool(re.search(r'epson|L805[08]', p['name']+p['device'], re.I))
+    ordered = [p for p in printers if is_epson(p) and p['enabled']] + \
+              [p for p in printers if not (is_epson(p) and p['enabled'])]
+    if len(ordered) == 1:
+        chosen = ordered[0]['name']
+    else:
+        if not sys.stdin.isatty():
+            raise ValueError('Multiple printers; run "epson-print-card queue" once to choose, or pass --queue NAME once')
+        print('选择默认打印队列（只问这一次）：')
+        for i, p in enumerate(ordered, 1):
+            channel = '局域网直连' if p['device'].startswith('socket://') else ('云中继' if 'remote' in p['device'].lower() else p['device'] or '未知通道')
+            print(f'  {i}. {p["name"]}（{channel}，{"启用" if p["enabled"] else "停用"}）')
+        pick = input('输入编号: ').strip()
+        if not pick.isdigit() or not 1 <= int(pick) <= len(ordered):
+            raise ValueError('无效编号；未保存选择')
+        chosen = ordered[int(pick)-1]['name']
+    store.parent.mkdir(parents=True, exist_ok=True)
+    write(store, {'queue': chosen, 'chosen_at': dt.datetime.now().astimezone().isoformat(), 'how': 'auto/interactive'})
+    return chosen
+
+
+def queue_cmd(args):
+    chosen = choose_queue(explicit=args.name)
+    print(json.dumps({'saved_queue': chosen, 'store': str(queue_store_path())}, ensure_ascii=False))
 
 
 def parser():
@@ -628,6 +696,7 @@ def parser():
     sh=sub.add_parser('sheet');sh.add_argument('--front-dir',required=True);sh.add_argument('--output',required=True);sh.add_argument('--queue')
     sh.add_argument('--execute',action='store_true');sh.add_argument('--columns',type=int);sh.add_argument('--dpi',type=int,choices=(150,300,600),default=300)
     sh.add_argument('--scale',type=float,default=1.0);sh.add_argument('--rotate',type=int,choices=(0,90,180,270),default=0);sh.set_defaults(func=sheet)
+    q=sub.add_parser('queue');q.add_argument('--name');q.set_defaults(func=queue_cmd)
     return p
 
 

@@ -252,6 +252,22 @@ class CardJob(unittest.TestCase):
         self.assertIn('batch-0001-front.pdf',payload['argv'][-1])
 
 
+    def test_step_without_queue_uses_saved_choice(self):
+        store=epc.queue_store_path();store.parent.mkdir(parents=True,exist_ok=True)
+        epc.write(store, {'queue': 'EPSON_TEST'})
+        self.build(3)
+        def fake(argv):
+            if argv[:2]==['lpstat','-p']: return SimpleNamespace(stdout='printer EPSON_TEST is idle.  enabled\n')
+            if argv[:2]==['lpstat','-v']: return SimpleNamespace(stdout='device for EPSON_TEST: socket://1.2.3.4:9100\n')
+            raise AssertionError('preview must not touch printer: '+str(argv))
+        with patch.object(epc,'checked_run',side_effect=fake):
+            import io, contextlib
+            buf=io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                epc.step(argparse.Namespace(job=str(self.base/'job'),queue=None,execute=False,tray_loaded=False,confirm_output=False,confirm_dry=False))
+        self.assertIn('"queue": "EPSON_TEST"',buf.getvalue())
+
+
 class Sheet(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
@@ -333,6 +349,71 @@ class Sheet(unittest.TestCase):
         self.assertEqual(payload['spacing_mm'],0)
         self.assertFalse(payload['execute'])
         self.assertTrue(payload['argv'][0]=='lp')
+
+
+PRINTERS_STDOUT = ('printer EPSON_L8058 is idle.  enabled since Sun Sep 27 02:12:50 2026\n'
+                   'printer L8058__Remote_ is idle.  enabled since Tue Oct  6 17:14:58 2026\n'
+                   'printer typhur_printer01 is idle.  enabled since Thu Sep  3 19:07:32 2026\n')
+DEVICES_STDOUT = ('device for EPSON_L8058: socket://192.168.31.38:9100\n'
+                  'device for L8058__Remote_: epsonremote://svn5636768prmg%40print.rpt.epson.com.cn\n'
+                  'device for typhur_printer01: lpd://10.10.0.30/typhur_printer01\n')
+
+
+class QueueChoice(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.base=Path(self.temp.name)
+        self._old=os.environ.get('EPSON_PRINT_CARD_CONFIG_DIR')
+        os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=str(self.base/'config')
+        def restore():
+            if self._old is None: os.environ.pop('EPSON_PRINT_CARD_CONFIG_DIR',None)
+            else: os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=self._old
+        self.addCleanup(restore)
+
+    def lpstat_fake(self, argv):
+        if argv[:2]==['lpstat','-p']: return SimpleNamespace(stdout=PRINTERS_STDOUT)
+        if argv[:2]==['lpstat','-v']: return SimpleNamespace(stdout=DEVICES_STDOUT)
+        if argv==['lpstat','-p','L8058__Remote_','-l']: return SimpleNamespace(stdout='printer L8058__Remote_ is idle. Epson\n')
+        if argv==['lpstat','-l','-p','L8058__Remote_']: return SimpleNamespace(stdout='Epson L8058\n')
+        if argv[0]=='lp': return SimpleNamespace(stdout='request id is L8058__Remote_-31 (1 file(s))\n')
+        raise AssertionError('unexpected call: '+str(argv))
+
+    def test_list_printers_parses_names_and_devices(self):
+        with patch.object(epc,'checked_run',side_effect=self.lpstat_fake):
+            printers={p['name']:p for p in epc.list_printers()}
+        self.assertEqual(set(printers),{'EPSON_L8058','L8058__Remote_','typhur_printer01'})
+        self.assertTrue(printers['L8058__Remote_']['device'].startswith('epsonremote://'))
+        self.assertTrue(printers['EPSON_L8058']['enabled'])
+
+    def test_choose_explicit_saves_then_reused_without_asking(self):
+        with patch.object(epc,'checked_run',side_effect=self.lpstat_fake):
+            self.assertEqual(epc.choose_queue(explicit='L8058__Remote_'),'L8058__Remote_')
+            self.assertEqual(epc.read(epc.queue_store_path())['queue'],'L8058__Remote_')
+            self.assertEqual(epc.choose_queue(),'L8058__Remote_')
+
+    def test_choose_explicit_unknown_rejected(self):
+        with patch.object(epc,'checked_run',side_effect=self.lpstat_fake):
+            with self.assertRaisesRegex(ValueError,'No local printer'):epc.choose_queue(explicit='NOPE')
+
+    def test_choose_multiple_without_tty_gives_guidance(self):
+        with patch.object(epc,'checked_run',side_effect=self.lpstat_fake), \
+             patch.object(epc.sys.stdin,'isatty',return_value=False):
+            with self.assertRaisesRegex(ValueError,'Multiple printers'):epc.choose_queue()
+
+    def test_sheet_execute_without_queue_uses_saved_choice(self):
+        store=epc.queue_store_path();store.parent.mkdir(parents=True,exist_ok=True)
+        epc.write(store, {'queue':'L8058__Remote_'})
+        fronts=self.base/'fronts';fronts.mkdir()
+        Image.new('RGB',(86,54),'red').save(fronts/'a.png')
+        calls=[]
+        def fake(argv):
+            calls.append(argv);return self.lpstat_fake(argv)
+        with patch.object(epc,'checked_run',side_effect=fake):
+            epc.sheet(argparse.Namespace(front_dir=str(fronts),output=str(self.base/'out'),
+                                         execute=True,queue=None,columns=None,dpi=150,scale=1.0,rotate=0))
+        lp=[c for c in calls if c[0]=='lp']
+        self.assertEqual(len(lp),1)
+        self.assertIn('L8058__Remote_',lp[0])
 
 
 if __name__=='__main__':unittest.main()

@@ -32,8 +32,21 @@ epson-print-card sheet --front-dir {dir} --queue NAME [--columns N] [--scale 2] 
 
 ## 作业推进（step）
 
-- `step --job DIR --queue NAME`：显示当前这一盘一面的提交命令（预览，不动打印机）。
-- 确认装好该盘后 `--execute --tray-loaded` 才真投递；始终关闭自动双面、拼页和缩放。
+一轮的完整命令形态（以作业目录 `.tmp/job`、队列 `EPSON_L8058` 为例）：
+
+```bash
+# 1. 预览当前盘/面要提交什么（不动打印机）
+epson-print-card step --job .tmp/job --queue EPSON_L8058
+# 2. 把这一盘装进打印机后，真投递（两个参数必须同时给）
+epson-print-card step --job .tmp/job --queue EPSON_L8058 --execute --tray-loaded
+# 3. 打印机出盘、确认实物没问题后，推进到下一盘
+epson-print-card step --job .tmp/job --confirm-output
+# 4. 每批整面打完出现干燥门，干燥后放行
+epson-print-card step --job .tmp/job --confirm-dry
+```
+
+- `--execute` 只是「允许真投递」；`--tray-loaded` 是「本盘已装进打印机」的人工确认，缺一个都不会提交。
+- 投递的队列与托盘选项来自活动 profile（`~/.config/epson-print-card/profile.json`）；profile 必须绑定同一队列且 `transport_verified`/`production_verified` 为 true 才放行。
 - 打印机出盘后 `--confirm-output` 确认实物完成，才推进到下一盘。
 - 每批正面（或背面）全部确认后到达**干燥门**：`step` 显示 waiting:drying；油墨干燥后 `--confirm-dry` 放行。干燥门前 `--confirm-output`/`--confirm-dry` 混用会报错。
 - 全部批次完成打印并干燥后，`step` 报 `All groups printed and dried`。
