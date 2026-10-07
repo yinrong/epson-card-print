@@ -286,25 +286,18 @@ def make_pdf(path, profile, placements, side, dpi, fit, calibration=False):
     c.showPage(); c.save()
 
 
-def prepare(args):
-    slots_per_tray, trays_per_group = parse_group(args.group)
+def _write_job(cards, slots_per_tray, trays_per_group, output, dpi, fit, calibration, flip_note):
     profile = active_profile()
     if len(profile['slots']) != slots_per_tray:
         raise ValueError(f'active profile has {len(profile["slots"])} slots but --group says {slots_per_tray} per tray')
-    if args.calibration:
-        cards = [{'id':'calibration-'+s['id'],'front':None,'back':None} for s in profile['slots']]
-    else:
-        if not args.front_dir or not args.back_img:
-            raise ValueError('--front-dir and --back-img are required (or use --calibration)')
-        cards = load_cards(args.front_dir, args.back_img)
-    output = Path(args.output).resolve()
+    output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     # Manifest appears only after every file is complete. Failed folders are not runnable.
     capacity = len(profile['slots'])
     mapping = profile.get('back_slot_map', [s['id'] for s in profile['slots']])
     by_id = {s['id']:s for s in profile['slots']}
     manifest = {'schema':2,'mode':'card-group','group':{'slots_per_tray':slots_per_tray,'trays_per_group':trays_per_group},
-                'profile':profile,'calibration':args.calibration,'created_at':dt.datetime.now().astimezone().isoformat(),
+                'profile':profile,'calibration':calibration,'created_at':dt.datetime.now().astimezone().isoformat(),
                 'cards':len(cards),'back_image':cards[0]['back'],'batches':[]}
     manifest['runtime']={'python':sys.version.split()[0],**{name:importlib.metadata.version(name) for name in ('Pillow','reportlab')}}
     for start in range(0,len(cards),capacity):
@@ -316,7 +309,7 @@ def prepare(args):
             placements = [{'card':card,'slot':profile['slots'][i] if side=='front' else by_id[mapping[i]]} for i,card in enumerate(batch['cards'])]
             filename = f'batch-{batch_num:04d}-{side}.pdf'
             path = output/filename
-            make_pdf(path,profile,placements,side,args.dpi,args.fit,args.calibration)
+            make_pdf(path,profile,placements,side,dpi,fit,calibration)
             batch['sides'][side] = {'file':filename,'sha256':digest(path),'placements':[{'id':p['card']['id'],'slot':p['slot']['id']} for p in placements]}
         manifest['batches'].append(batch)
     write(output/'manifest.json',manifest)
@@ -324,21 +317,46 @@ def prepare(args):
     groups = manifest['batches'][-1]['group'] if manifest['batches'] else 0
     lines = ['<!doctype html><meta charset="utf-8"><title>证卡装卡计划</title><style>body{font:16px system-ui;max-width:960px;margin:32px auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:8px}}</style>',
              f'<h1>证卡组批打印（每托盘 {slots_per_tray} 卡 × 每批 {trays_per_group} 盘）</h1>',
-             f'<p>每批顺序：装满 {trays_per_group} 盘 → 逐盘打印正面（每盘确认出盘）→ 整批干燥（--confirm-dry）→ 按背面槽位翻卡装回 → 逐盘打印背面 → 再次干燥（--confirm-dry）→ 换下一批卡。保持托架进机方向一致；图像按正常阅读方向提供，程序不镜像文字。所有卡共用同一张背面图。</p>']
+             f'<p>每批顺序：装满 {trays_per_group} 盘 → 逐盘打印（每盘确认出盘）→ 整批干燥（--confirm-dry）→ 换下一批。保持托架进机方向一致；图像按正常阅读方向提供，程序不镜像文字。所有卡共用同一张背面图。</p>']
+    if flip_note:
+        lines.insert(2, '<p><b>背面遍翻卡方式：左右翻面（像翻书页对翻）、背面朝上，卡的上边方向保持不变——不是上下颠倒。程序不镜像背面图。</b></p>')
     for g in range(1,groups+1):
         batches=[b for b in manifest['batches'] if b['group']==g]
-        lines.append(f'<h2>第 {g} 批（{len(batches)} 盘）</h2><table><tr><th>盘号</th><th>卡号</th><th>正面槽</th><th>背面槽</th></tr>')
+        lines.append(f'<h2>第 {g} 批（{len(batches)} 盘）</h2><table><tr><th>盘号</th><th>卡号</th><th>槽位</th></tr>')
         for b in batches:
-            for front,back in zip(b['sides']['front']['placements'],b['sides']['back']['placements']):
-                lines.append('<tr>'+''.join(f'<td>{html.escape(str(v))}</td>' for v in (b['number'],front['id'],front['slot'],back['slot']))+'</tr>')
+            for front in b['sides']['front']['placements']:
+                lines.append('<tr>'+''.join(f'<td>{html.escape(str(v))}</td>' for v in (b['number'],front['id'],front['slot']))+'</tr>')
         lines.append('</table>')
         for b in batches:
             for side in ('front','back'):
                 name=b['sides'][side]['file']
                 lines.append(f'<p><a href="{name}">{name}</a></p>')
     (output/'装卡顺序.html').write_text('\n'.join(lines))
-    print(json.dumps({'output':str(output),'cards':len(cards),'batches':len(manifest['batches']),'groups':groups,
-                      'group_size':slots_per_tray*trays_per_group,'mode':'card-group','calibration':args.calibration,'physical_verified':False},ensure_ascii=False))
+    return {'output':str(output),'cards':len(cards),'batches':len(manifest['batches']),'groups':groups,
+            'group_size':slots_per_tray*trays_per_group,'mode':'card-group','calibration':calibration,'physical_verified':False}
+
+
+def prepare(args):
+    slots_per_tray, _ = parse_group(args.group)
+    if args.calibration:
+        profile = active_profile()
+        cards = [{'id':'calibration-'+s['id'],'front':None,'back':None} for s in profile['slots']]
+        summary = _write_job(cards, slots_per_tray, 1, args.output, args.dpi, args.fit, True, False)
+        print(json.dumps(summary, ensure_ascii=False)); return
+    if not args.front_dir or not args.back_img:
+        raise ValueError('--front-dir and --back-img are required (or use --calibration)')
+    cards = load_cards(args.front_dir, args.back_img)
+    trays = math.ceil(len(cards)/slots_per_tray)
+    if getattr(args, 'two_pass', False):
+        # 两遍法：正面连打一遍 + 背面连打一遍（每张卡的打印面=共享背面图），中间人工干燥与翻卡
+        fronts = _write_job(cards, slots_per_tray, trays, str(args.output).rstrip('/')+'-fronts', args.dpi, args.fit, False, False)
+        back_cards = [{'id':c['id'],'front':cards[0]['back'],'back':cards[0]['back']} for c in cards]
+        backs = _write_job(back_cards, slots_per_tray, trays, str(args.output).rstrip('/')+'-backs', args.dpi, args.fit, False, True)
+        print(json.dumps({'two_pass':True,'fronts':fronts,'backs':backs,
+                          'next':f"epson-print-card run --job {fronts['output']}"},ensure_ascii=False)); return
+    _, trays_per_group = parse_group(args.group)
+    summary = _write_job(cards, slots_per_tray, trays_per_group, args.output, args.dpi, args.fit, False, False)
+    print(json.dumps(summary, ensure_ascii=False))
 
 
 def calibrate(args):
@@ -470,6 +488,8 @@ def stored_queue():
 
 
 def step(args):
+    if getattr(args, 'reprint', False):
+        return reprint(args)
     folder = Path(args.job).resolve()
     lock = folder/'.state.lock'
     import fcntl
@@ -891,14 +911,125 @@ def queue_cmd(args):
         print('▶ 下一步：作业用新队列继续时运行  epson-print-card step --job 作业目录 --queue %s --execute --tray-loaded（装好盘后）' % name)
 
 
+def reprint(args):
+    """CUPS 报完成但实物失败时：回滚最近已确认的一盘并立即重提（取消后续抢跑作业）。"""
+    folder = Path(args.job).resolve()
+    import fcntl
+    with (folder/'.state.lock').open('a') as lockfile:
+        fcntl.flock(lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        manifest, state = read(folder/'manifest.json'), read(folder/'state.json')
+        if state['manifest_sha256'] != digest(folder/'manifest.json'):
+            raise ValueError('Manifest changed; create a new job')
+        events = job_events(manifest)
+        idx = state['next_event']
+        # 取消已提交未确认的下一作业（打印前拦截）
+        nxt_pending = state['events'][-1] if state['events'] and state['events'][-1].get('index') == idx else None
+        if nxt_pending and nxt_pending.get('status') in ('submitted','submission_uncertain') and nxt_pending.get('cups_job_id'):
+            try:
+                checked_run(['cancel', nxt_pending['cups_job_id']])
+                nxt_pending['status'] = 'cancelled'; nxt_pending['note'] = 'reprint 撤销抢跑'
+            except subprocess.SubprocessError:
+                pass
+        confirmed = [e for e in state['events'] if e.get('status') == 'operator_confirmed' and e.get('index') == idx-1]
+        if not confirmed:
+            raise ValueError('没有可重打的已确认盘（最近一盘尚未确认）')
+        target = confirmed[-1]
+        target['status'] = 'physical_failed'
+        target['note'] = 'CUPS 报完成但实物失败，reprint 重打'
+        state['next_event'] = idx - 1
+        state['events'].append({'type':'reprint','batch':target.get('batch'),'side':target.get('side'),
+                                'reason':args.reason or 'operator reported physical failure',
+                                'at':dt.datetime.now().astimezone().isoformat()})
+        write(folder/'state.json', state)
+    queue = args.queue or stored_queue() or manifest['profile'].get('queue_name')
+    print(f"已回滚第 {target.get('batch')} 盘（{target.get('side')}）并重提")
+    step(argparse.Namespace(job=str(folder), queue=queue, execute=True, tray_loaded=True,
+                            confirm_output=False, confirm_dry=False, reprint=False))
+
+
+def run(args):
+    """自动递盘：上一盘 CUPS 完成即自动确认并提交下一盘；干燥门/结束/异常自动停下并给出下一步命令。
+    日志同时写入 {job}/run.log。"""
+    import time
+    folder = Path(args.job).resolve()
+    queue = args.queue or stored_queue() or 'QUEUE_NAME'
+    log_path = folder/'run.log'
+    def log(msg):
+        line = f"[{dt.datetime.now().strftime('%H:%M:%S')}] {msg}"
+        print(line, flush=True)
+        with log_path.open('a') as f: f.write(line+'\n')
+    seen_job = None
+    log(f'自动循环启动：{folder}')
+    while True:
+        state = read(folder/'state.json')
+        manifest = read(folder/'manifest.json')
+        events = job_events(manifest)
+        idx = state['next_event']
+        if idx >= len(events):
+            log('✅ 全部完成（打印与干燥确认结束）。')
+            return
+        ev = events[idx]
+        pending = state['events'][-1] if state['events'] and state['events'][-1].get('index') == idx else None
+        if ev['type'] == 'dry':
+            log(f'⏸ 干燥门（第 {ev["group"]} 批 {ev["phase"]}）：等油墨干燥后运行')
+            log(f'   epson-print-card step --job {folder} --confirm-dry')
+            nxt = events[idx+1] if idx+1 < len(events) else None
+            if nxt and nxt['type'] == 'side' and nxt['side'] == 'back':
+                log(f'   然后按 {folder}/装卡顺序.html 左右翻面装回，再运行：epson-print-card run --job {folder}')
+            elif nxt is not None:
+                log(f'   然后换下一批卡，再运行：epson-print-card run --job {folder}')
+            return
+        batch = manifest['batches'][ev['batch']-1]
+        placements = '、'.join(f"{q['id']}→{q['slot']}" for q in batch['sides'][ev['side']]['placements'])
+        side_cn = '正面' if ev['side'] == 'front' else '背面（翻卡装回）'
+        if pending and pending.get('status') in ('submitted','submission_uncertain'):
+            jid = pending.get('cups_job_id')
+            active = checked_run(['lpstat','-o']).stdout
+            if jid and jid in active:
+                seen_job = jid
+                time.sleep(args.interval); continue
+            if jid and seen_job == jid:
+                step(argparse.Namespace(job=str(folder), queue=None, execute=False, tray_loaded=False,
+                                        confirm_output=True, confirm_dry=False, reprint=False))
+                log(f'📤 {jid} 完成，自动确认：第 {batch["number"]} 盘 {side_cn}')
+                state = read(folder/'state.json')
+                events = job_events(read(folder/'manifest.json'))
+                idx2 = state['next_event']
+                if idx2 < len(events) and events[idx2]['type'] == 'side':
+                    nb = manifest['batches'][events[idx2]['batch']-1]
+                    pl2 = '、'.join(f"{q['id']}→{q['slot']}" for q in nb['sides'][events[idx2]['side']]['placements'])
+                    sc2 = '正面' if events[idx2]['side'] == 'front' else '背面（翻卡装回）'
+                    log(f'🖨 提交第 {nb["number"]} 盘；请装：{pl2}，{sc2}')
+                seen_job = None
+                time.sleep(3); continue
+            if jid and seen_job is None:
+                waited = 0
+                while waited < 60:
+                    time.sleep(args.interval); waited += args.interval
+                    if jid in checked_run(['lpstat','-o']).stdout:
+                        seen_job = jid; break
+                else:
+                    log(f'⚠️ 作业 {jid} 未出现在队列（打印机离线或秒退）。停止；实物已出则 --confirm-output，未出则 step --reprint 重打。')
+                    return
+                continue
+            time.sleep(args.interval); continue
+        step(argparse.Namespace(job=str(folder), queue=queue, execute=True, tray_loaded=True,
+                                confirm_output=False, confirm_dry=False, reprint=False))
+        log(f'🖨 提交第 {ev["batch"]} 盘；请装：{placements}，{side_cn}')
+        time.sleep(3)
+
+
 def parser():
     p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter); sub=p.add_subparsers(dest='cmd',required=True)
     b=sub.add_parser('prepare');b.add_argument('--front-dir');b.add_argument('--back-img')
     b.add_argument('--group',required=True);b.add_argument('--output',required=True);b.add_argument('--calibration',action='store_true')
-    b.add_argument('--dpi',type=int,choices=(150,300,600),default=300);b.add_argument('--fit',choices=('cover','contain','exact'),default='contain');b.set_defaults(func=prepare)
+    b.add_argument('--dpi',type=int,choices=(150,300,600),default=300);b.add_argument('--fit',choices=('cover','contain','exact'),default='contain')
+    b.add_argument('--two-pass',dest='two_pass',action='store_true',help='生成正面连打+背面连打两个作业（大批量推荐）');b.set_defaults(func=prepare)
     c=sub.add_parser('calibrate');c.add_argument('--samples');c.add_argument('--max-residual',type=float,default=.5);c.add_argument('--reset',action='store_true');c.set_defaults(func=calibrate)
     s=sub.add_parser('step');s.add_argument('--job',required=True);s.add_argument('--queue');s.add_argument('--execute',action='store_true');s.add_argument('--tray-loaded',action='store_true')
-    s.add_argument('--confirm-output',action='store_true');s.add_argument('--confirm-dry',action='store_true');s.set_defaults(func=step)
+    s.add_argument('--confirm-output',action='store_true');s.add_argument('--confirm-dry',action='store_true')
+    s.add_argument('--reprint',action='store_true');s.add_argument('--reason');s.set_defaults(func=step)
+    r=sub.add_parser('run');r.add_argument('--job',required=True);r.add_argument('--queue');r.add_argument('--interval',type=float,default=10.0);r.set_defaults(func=run)
     sh=sub.add_parser('sheet');sh.add_argument('--front-dir',required=True);sh.add_argument('--output',required=True);sh.add_argument('--queue')
     sh.add_argument('--execute',action='store_true');sh.add_argument('--columns',type=int);sh.add_argument('--dpi',type=int,choices=(150,300,600),default=300)
     sh.add_argument('--scale',type=float,default=1.0);sh.add_argument('--rotate',type=int,choices=(0,90,180,270),default=0);sh.set_defaults(func=sheet)

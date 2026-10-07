@@ -35,6 +35,10 @@
 
 [STL 文件](/Users/derek.yin/db/epson-l8058/implementation/tray-cad/mesh/tray.stl) · [网格检查](/Users/derek.yin/db/epson-l8058/implementation/tray-cad/mesh/mesh-audit.json) · [Bambu 导入日志](/Users/derek.yin/db/epson-l8058/implementation/bambu-check/import-log.txt) · [七卡装卡顺序](/Users/derek.yin/db/epson-l8058/implementation/seven-card-job-validated/装卡顺序.html)
 
+## 2026-10-07 首批 76 张双面证卡全数完成
+
+行动卡牌（rich-v4）76 张、原配双卡托架、队列 EPSON_L8058：正面 30+8 盘、背面 38 盘全部打印确认，两遍法（正面连打→干燥→翻卡→背面连打）。途中修正四类实机问题并全部固化进程序：①驱动选项必须用 9-26 留档全套 A4.ManuCDR（内建 PROVEN_TRAY_OPTIONS）；②几何用 step5-real-cards 留档 rotation 0/inset 0/出血1.5/x-1mm（候选值致方向尺寸错）；③校准只调纯平移、连续 2 盘 >2mm 才动（缩放/旋转两次事故后冻结，[校准台账](skills/epson-print-card/references/校准台账-2026-10-07.md)）；④CUPS 完成≠实物（--reprint 重打机制）。为去 AI 化新增：`run` 自动递盘（run.log）、`--two-pass` 两遍法、`--reprint`；40 项测试全绿。生产作业档案：`~/db/epson-l8058/rich-v4-cards-20261007/`。
+
 ## 当前实机状态
 
 2026-10-06，Derek 报告原话：

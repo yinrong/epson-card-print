@@ -23,6 +23,9 @@ epson-print-card step --job /new/job          # 队列首次会引导选一次�
 | 我想… | 命令 |
 |---|---|
 | 看下一步干什么（忘了随时跑，会自动提示） | `epson-print-card step --job 作业目录` |
+| 大批量双面卡（推荐两遍法） | `epson-print-card prepare --front-dir 正面目录 --back-img 背面图 --group 2xN --two-pass --output 作业前缀` |
+| 自动递盘（装盘/取盘外全自动，日志在 作业目录/run.log） | `epson-print-card run --job 作业目录` |
+| CUPS 报完成但实物失败，重打该盘 | `epson-print-card step --job 作业目录 --reprint` |
 | 开始一批证卡作业 | `epson-print-card prepare --front-dir 正面图目录 --back-img 背面图 --group 2x3 --output 作业目录` |
 | 提交当前这一盘（装好盘后） | `epson-print-card step --job 作业目录 --queue 队列 --execute --tray-loaded` |
 | 确认这一盘已出盘 | `epson-print-card step --job 作业目录 --confirm-output` |
@@ -46,6 +49,19 @@ epson-print-card sheet --front-dir {dir} [--columns N] [--scale 2] [--rotate 180
 ```
 
 列数默认自动：按图片宽高比选格比最贴合的网格（比例优先、格子大者优先、页数少者优先）；格间距与页边距均为 0。`--scale` 把自动网格的格子精确放大 N 倍（图片保持紧贴，多余页边留白）；`--rotate` 顺时针旋转图片 0/90/180/270。不带 `--queue` 时用一次性选择的默认队列；`--execute` 真投递（队列需存在、启用、识别为 Epson；显式 `EPIJ_Size=1`＝A4）。例：75 张 1276×2031 竖版图 → 9 列×8 行、2 页（72+3）；同批 2 倍放大 → 4 列×4 行、5 页。
+
+## 大批量推荐：两遍法 + 自动递盘（最少人工）
+
+一次 prepare 生成两个连打作业：`--two-pass` 出 `作业前缀-fronts`（全部正面、单组无中途干燥门）和 `作业前缀-backs`（每张卡打印面＝共享背面图，装卡表内置翻面说明）。流程只有四步人工动作：
+
+```bash
+epson-print-card prepare --front-dir 目录 --back-img 背面图 --group 2x38 --two-pass --output /path/cards
+epson-print-card run --job /path/cards-fronts        # ① 自动递盘打全部正面，你只装/取盘
+# 干燥后按 backs 装卡表左右翻面装回
+epson-print-card run --job /path/cards-backs         # ② 自动递盘打全部背面
+```
+
+`run` 在每盘 CUPS 完成后自动确认并提交下一盘，实时日志写 `作业目录/run.log`；到干燥门、全部完成或异常（作业 60 秒未上队）自动停下并打印下一步命令。实物失败盘：`step --reprint` 回滚重打该盘（自动取消抢跑的下一作业）。中间要翻卡/换面的停点，按终端提示操作后重跑 `run` 即可续。
 
 ## 作业推进（step）
 
@@ -80,7 +96,11 @@ epson-print-card calibrate --samples points.json   # 就地更新活动校准文
 epson-print-card calibrate --reset                 # 恢复内建规格
 ```
 
-最小二乘拟合正面仿射补偿并与既有补偿组合；残差超 0.5 mm 报错（数据一致性检查，非验收公差）。校准后 `production_verified` 重置为 false，重复试印合格前不得生产提交。
+校准纪律（2026-10-07 实机教训固化，详见 [校准台账](references/校准台账-2026-10-07.md)）：
+
+- **只调纯平移项**（c/f）。缩放/旋转项在本渲染链的合成曾有两次越调越偏的实机事故，禁用。
+- 机械重复性地板 ±1.5–2mm（托架手工插拔）：**连续 2 盘同向系统性残差 >2mm 才调**，单盘读数不触发。
+- 全部实测与决策记入台账；CUPS「完成」≠实物出纸，确认以看盘为准。
 
 ## 实机操作提示
 

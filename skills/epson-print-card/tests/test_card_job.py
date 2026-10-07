@@ -519,4 +519,85 @@ class QueueChoice(unittest.TestCase):
         self.assertIn('L8058__Remote_',lp[0])
 
 
+class TwoPassAndReprint(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.base=Path(self.temp.name)
+        self._old=os.environ.get('EPSON_PRINT_CARD_CONFIG_DIR')
+        os.environ['EPSON_PRINT_CARD_CONFIG_DIR']=str(self.base/'config')
+        if self._old is None: self.addCleanup(os.environ.pop,'EPSON_PRINT_CARD_CONFIG_DIR',None)
+        else: self.addCleanup(os.environ.__setitem__,'EPSON_PRINT_CARD_CONFIG_DIR',self._old)
+        self.fronts=self.base/'fronts';self.fronts.mkdir()
+        for i in range(4):
+            Image.new('RGB',(86,54),('red','green','blue','yellow')[i]).save(self.fronts/f'{i:03d}-card.png')
+        Image.new('RGB',(86,54),'white').save(self.base/'back.png')
+
+    def args(self,**kw):
+        d=dict(front_dir=str(self.fronts),back_img=str(self.base/'back.png'),group='2x9',
+               output=str(self.base/'job'),calibration=False,dpi=150,fit='contain',two_pass=kw.pop('two_pass',True))
+        d.update(kw);return argparse.Namespace(**d)
+
+    def test_two_pass_creates_fronts_and_backs_jobs(self):
+        epc.prepare(self.args())
+        f=epc.read(self.base/'job-fronts/manifest.json'); b=epc.read(self.base/'job-backs/manifest.json')
+        self.assertEqual((f['cards'],len(f['batches']),f['group']['trays_per_group']),(4,2,2))
+        self.assertEqual((b['cards'],len(b['batches'])),(4,2))
+        self.assertTrue(all(c['front']==b['back_image'] for bl in b['batches'] for c in bl['cards']))
+        self.assertIn('左右翻面',(self.base/'job-backs/装卡顺序.html').read_text())
+
+    def test_reprint_rolls_back_last_confirmed_and_resubmits(self):
+        self.args(two_pass=False)
+        epc.active_profile_path().parent.mkdir(parents=True,exist_ok=True)
+        epc.write(epc.active_profile_path(),{**epc.DEFAULT_PROFILE,
+            'queue_name':'EPSON_TEST','tray_option':'InputSlot','cups_options':{'InputSlot':'CD'},
+            'transport_verified':True,'production_verified':True,'verification_evidence':['mock']})
+        epc.prepare(argparse.Namespace(front_dir=str(self.fronts),back_img=str(self.base/'back.png'),group='2x9',
+                    output=str(self.base/'job2'),calibration=False,dpi=150,fit='contain',two_pass=False))
+        folder=self.base/'job2'; state=epc.read(folder/'state.json')
+        state['events'].append({'index':0,'batch':1,'side':'front','status':'operator_confirmed'})
+        state['next_event']=1; epc.write(folder/'state.json',state)
+        calls=[]
+        def fake(argv):
+            calls.append(argv)
+            if argv[0]=='lpstat':return SimpleNamespace(stdout='printer EPSON_TEST is idle. Epson\n')
+            if argv[0]=='lpoptions':return SimpleNamespace(stdout='InputSlot/Source: Rear *CD\n')
+            if argv[0]=='cancel':return SimpleNamespace(stdout='')
+            return SimpleNamespace(stdout='request id is EPSON_TEST-9 (1 file(s))\n')
+        import io
+        from contextlib import redirect_stdout
+        with patch.object(epc,'checked_run',side_effect=fake), redirect_stdout(io.StringIO()):
+            epc.step(argparse.Namespace(job=str(folder),queue='EPSON_TEST',execute=False,tray_loaded=False,
+                                        confirm_output=False,confirm_dry=False,reprint=True,reason='test'))
+        st=epc.read(folder/'state.json')
+        self.assertEqual(st['next_event'],0)
+        self.assertEqual([e for e in st['events'] if e.get('status')=='physical_failed'][0]['index'],0)
+        self.assertTrue(any(e.get('type')=='reprint' for e in st['events']))
+        self.assertTrue(any(c[0]=='lp' for c in calls))
+
+    def test_run_cycle_confirms_and_submits_next(self):
+        epc.active_profile_path().parent.mkdir(parents=True,exist_ok=True)
+        epc.write(epc.active_profile_path(),{**epc.DEFAULT_PROFILE,
+            'queue_name':'EPSON_TEST','tray_option':'InputSlot','cups_options':{'InputSlot':'CD'},
+            'transport_verified':True,'production_verified':True,'verification_evidence':['mock']})
+        epc.prepare(argparse.Namespace(front_dir=str(self.fronts),back_img=str(self.base/'back.png'),group='2x9',
+                    output=str(self.base/'job3'),calibration=False,dpi=150,fit='contain',two_pass=False))
+        folder=self.base/'job3'; state=epc.read(folder/'state.json')
+        state['events'].append({'index':0,'batch':1,'side':'front','status':'submitted','cups_job_id':'EPSON_TEST-5'})
+        epc.write(folder/'state.json',state)
+        seen={'n':0}
+        def fake(argv):
+            seen['n']+=1
+            if argv[0]=='lpstat' and len(argv)>1 and argv[1]=='-o':
+                return SimpleNamespace(stdout='' if seen['n']>1 else 'EPSON_TEST-5  job\n')  # 第一次在队、之后消失=完成
+            if argv[0]=='lpstat':return SimpleNamespace(stdout='printer EPSON_TEST is idle. Epson\n')
+            if argv[0]=='lpoptions':return SimpleNamespace(stdout='InputSlot/Source: Rear *CD\n')
+            return SimpleNamespace(stdout='request id is EPSON_TEST-6 (1 file(s))\n')
+        import threading
+        with patch.object(epc,'checked_run',side_effect=fake):
+            th=threading.Thread(target=lambda: epc.run(argparse.Namespace(job=str(folder),queue='EPSON_TEST',interval=0.05)),daemon=True)
+            th.start(); th.join(timeout=15)
+        st=epc.read(folder/'state.json')
+        self.assertEqual(st['next_event'],1)
+        self.assertTrue(any(e.get('index')==1 and e.get('status')=='submitted' for e in st['events']))
+
 if __name__=='__main__':unittest.main()

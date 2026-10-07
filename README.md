@@ -17,4 +17,4 @@
 
 ## epson-print-card 命令速查
 
-看下一步（自动提示）：`epson-print-card step --job 作业目录`；换队列：`epson-print-card queue`（列表）／`queue 队列名 --job 作业目录`（切换）；完整速查表见 [SKILL.md](skills/epson-print-card/SKILL.md#命令速查我想跑这条)。
+大批量双面（两遍法+自动递盘）：`epson-print-card prepare --two-pass --front-dir 目录 --back-img 背面图 --group 2xN --output 作业前缀` 然后 `run --job …-fronts`／`…-backs`；实物失败重打：`step --reprint`；看下一步（自动提示）：`epson-print-card step --job 作业目录`；换队列：`queue`／`queue 队列名 --job 作业目录`；完整速查见 [SKILL.md](skills/epson-print-card/SKILL.md#命令速查我想跑这条)。
