@@ -456,10 +456,10 @@ class Sheet(unittest.TestCase):
 
 PRINTERS_STDOUT = ('printer EPSON_L8058 is idle.  enabled since Sun Sep 27 02:12:50 2026\n'
                    'printer L8058__Remote_ is idle.  enabled since Tue Oct  6 17:14:58 2026\n'
-                   'printer typhur_printer01 is idle.  enabled since Thu Sep  3 19:07:32 2026\n')
+                   'printer other_printer is idle.  enabled since Thu Sep  3 19:07:32 2026\n')
 DEVICES_STDOUT = ('device for EPSON_L8058: socket://192.168.31.38:9100\n'
                   'device for L8058__Remote_: epsonremote://svn5636768prmg%40print.rpt.epson.com.cn\n'
-                  'device for typhur_printer01: lpd://10.10.0.30/typhur_printer01\n')
+                  'device for other_printer: lpd://192.0.2.30/other_printer\n')
 
 
 class QueueChoice(unittest.TestCase):
@@ -484,7 +484,7 @@ class QueueChoice(unittest.TestCase):
     def test_list_printers_parses_names_and_devices(self):
         with patch.object(epc,'checked_run',side_effect=self.lpstat_fake):
             printers={p['name']:p for p in epc.list_printers()}
-        self.assertEqual(set(printers),{'EPSON_L8058','L8058__Remote_','typhur_printer01'})
+        self.assertEqual(set(printers),{'EPSON_L8058','L8058__Remote_','other_printer'})
         self.assertTrue(printers['L8058__Remote_']['device'].startswith('epsonremote://'))
         self.assertTrue(printers['EPSON_L8058']['enabled'])
 
